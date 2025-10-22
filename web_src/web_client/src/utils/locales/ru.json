@@ -1,0 +1,157 @@
+{
+	"login": {
+		"username": "Имя пользователя",
+		"username_placeholder": "Введите имя пользователя",
+		"password": "Пароль",
+		"password_placeholder": "Введите пароль",
+		"login": "Войти",
+		"login_fail": "Не удалось войти. Пожалуйста, проверьте свои учетные данные",
+		"two_fa_code": "Код 2FA",
+		"two_fa_code_placeholder": "если включено"
+	},
+	"common": {
+		"available": "Доступно",
+		"refresh": "Обновить",
+		"device_path": "Путь устройства",
+		"reboot_info": "Вы уверены, что хотите перезагрузить KVM? Перезагрузка веб-интерфейса займет несколько минут."
+	},
+	"button": {
+		"reboot": "Перезагрузить",
+		"later": "Позже",
+		"ok": "ОК",
+		"cancel": "Отмена",
+		"close": "Закрыть",
+		"save": "Сохранить"
+	},
+	"label": {
+		"status": "Статус",
+		"created": "Создано",
+		"not_created": "Не создано",
+		"connected": "Подключено",
+		"dis_connected": "Отключено",
+		"none": "Нет",
+		"enable": "Включить",
+		"disable": "Отключить",
+		"warning": "Предупреждение"
+	},
+	"tab": {
+		"atx": {
+			"tip": "ATX",
+			"title": "Управление питанием",
+			"atx_no_connect": "Отключено",
+			"atx_poweron": "Включить питание",
+			"atx_poweroff": "Выключить питание",
+			"atx_forceoff": "Принудительное выключение",
+			"atx_reset": "Перезагрузка",
+			"wake_on_lan": "Включение по сети (Wake on LAN)",
+			"ledPwr": "Индикатор питания",
+			"ledHdd": "Индикатор HDD"
+		},
+		"home": "Главная",
+		"keyboard": "Клавиатура",
+		"language": {
+			"tip": "Язык",
+			"add": "Добавить язык"
+		},
+		"mouse": {
+			"tip": "Мышь",
+			"title": "Настройки мыши",
+			"mode": "Режим",
+			"absolute": "Абсолютный",
+			"relative": "Относительный",
+			"soft_hid_enable": "Включить Soft HID",
+			"soft_hid_disable": "Отключить Soft HID",
+			"jiggler_enable": "Включить Mouse Jiggler",
+			"jiggler_disable": "Отключить Mouse Jiggler",
+			"change_mode": "Режим мыши изменен успешно. Перезагрузите KVM и целевой ПК!",
+			"sensitivity": "Чувствительность",
+			"polling": "Частота опроса мыши"
+		},
+		"msd": {
+			"tip": "MSD",
+			"title": "Массивы хранения",
+			"available_images": "Доступные загрузочные образы",
+			"image_name": "Имя образа",
+			"make_msd_size": "Установить размер MSD",
+			"make_usb_drive": "Создать USB-накопитель",
+			"abort": "Отмена",
+			"delete_usb_drive": "Удалить USB-накопитель",
+			"connect_to_host": "Подключить к хосту",
+			"refresh_list": "Обновить список",
+			"remove_image_tip": "Удалить образ",
+			"remove_image_confirm": "Вы уверены, что хотите удалить образ?"
+		},
+		"notification": {
+			"tip": "Уведомления",
+			"log": "Последние 20 логов"
+		},
+		"switch": {
+			"tip": "Переключатель",
+			"choose_a_model": "Выберите модель",
+			"choose_a_channel": "Выберите канал",
+			"config": "Настройки переключателя"
+		},
+		"text": {
+			"tip": "Текст",
+			"title": "Копировать и вставить",
+			"paste": "Вставить в целевую систему",
+			"paste_info": "Поддерживается только англ.",
+			"copy": "Скопировать через распознавание текста",
+			"paste_button": "Вставить",
+			"select_area": "Выберите область",
+			"for": "для",
+			"text_recognition": "Распознавание текста"
+		},
+		"user": {
+			"tip": "Управление пользователями",
+			"logout": "Выйти",
+			"account_settings": "Настройки аккаунта",
+			"user_setting": "Настройки пользователя",
+			"new_username": "Новое имя пользователя",
+			"new_password": "Новый пароль",
+			"confirm_password": "Подтвердите пароль",
+			"current_password": "Текущий пароль",
+			"change_password": "Изменить пароль",
+			"version": "Версия",
+			"docs": "Документация",
+			"dsicord": "Discord",
+			"issue": "Проблемы",
+			"two_factor_auth": "Двухфакторная аутентификация",
+			"two_factor_code": "Введите код из приложения",
+			"enable_two_factor": "Включить 2FA",
+			"disable_two_factor": "Отключить 2FA"
+		},
+		"video": {
+			"tip": "Видео",
+			"title": "Настройки видео",
+			"mode": "Режим видео",
+			"fps": "Кадры в секунду (FPS)",
+			"quality": "Качество",
+			"reset_take_effect": "Сброс для применения",
+			"Mbps": "Мбит/с",
+			"gop": "gop",
+			"reset_stream": "Сбросить поток",
+			"resolution": "Разрешение",
+			"volume": "Громкость",
+			"refresh": "После закрытия страница автоматически обновится через 3 секунды и возобновит работу."
+		},
+		"setting": {
+			"tip": "Настройки",
+			"fetch_version": "Получить последнюю версию",
+			"switch_protocol": "Переключить протокол",
+			"http": "HTTP",
+			"https": "HTTPS",
+			"reboot_kvm": "Перезагрузить KVM",
+			"fetch": "Получить",
+			"no_new_version": "Новая версия недоступна",
+			"new_version": "Вы можете обновиться до новой версии через терминал"
+		},
+		"shortcuts": {
+			"tip": "Горячие клавиши"
+		},
+		"terminal": "Терминал",
+		"full_screen": "Полноэкранный режим",
+		"full_screen_exit": "Выйти из полноэкранного режима",
+		"hide": "Скрыть"
+	}
+}

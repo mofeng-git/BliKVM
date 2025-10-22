@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "name": "New Device 2",
+      "mac": "DD:BB:CC:DD:EE:FF"
+    }
+  ]
+}

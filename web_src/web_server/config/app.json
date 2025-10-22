@@ -1,0 +1,134 @@
+{
+  "version": 6,
+  "log": {
+    "console": {
+      "enabled": true,
+      "level": "info"
+    },
+    "file": {
+      "enabled": true,
+      "level": "trace",
+      "fileName": "/mnt/tmp/logs/app.log",
+      "flags": "a",
+      "maxLogSize": 30,
+      "backups": 3
+    }
+  },
+  "userManager": {
+    "userFile": "./config/user.json"
+  },
+  "server": {
+    "protocol": "https",
+    "https_port": 443,
+    "http_port": 80,
+    "ssl": {
+      "key": "./lib/https/key.pem",
+      "cert": "./lib/https/cert.pem"
+    },
+    "rootPath": "/mnt/blikvm/web_src/web_server",
+    "configPath": "/usr/bin/blikvm/package.json",
+    "sshUser": "blikvm",
+    "sshPassword": "blikvm",
+    "auth": false,
+    "authExpiration": 12,
+    "ipWhite": {
+      "enabled": false,
+      "list": []
+    }
+  },
+  "video": {
+    "port": 10004,
+    "shell": "./lib/kvmd-video.sh",
+    "bin": "./lib/pi/ustreamer.bin",
+    "fps": 30,
+    "quality": 80,
+    "kbps": 10000,
+    "gop": 30,
+    "resolution": "1920x1080",
+    "recordPath": "/mnt/tmp/record",
+    "recordBin": "./lib/pi/ustreamer-dump"
+  },
+  "kvmd": {
+    "bin": "./lib/pi/kvmd-main"
+  },
+  "display": {
+    "mode": "boot",
+    "onBootTime": 3600,
+    "cycleInterval": 60,
+    "displayTime": 10,
+    "secondIP": ""
+  },
+  "atx": {
+    "controlSockFilePath": "/var/blikvm/atx.sock",
+    "stateSockFilePath": "/dev/shm/blikvm/atx",
+    "power_on_delay": 500,
+    "power_off_delay": 5000
+  },
+  "msd": {
+    "enable": true,
+    "isoFilePath": "/mnt/msd/user",
+    "shell": "./lib/kvmd-msd.sh",
+    "stateFilePath": "/mnt/msd/config/msd.json",
+    "tusPort": 10002
+  },
+  "hid": {
+    "hidEnable": "./lib/hid/enable-gadget.sh",
+    "hidDisable": "./lib/hid/disable-gadget.sh",
+    "keymaps": "./lib/keymaps",
+    "enable": true,
+    "mouseMode": "absolute",
+    "mouseJiggler": false,
+    "pass_through": {
+      "enabled": true,
+      "mouse_sensitivity": 0.3,
+      "blockFlag": true
+    },
+    "shortcuts": {
+      "Ctrl+Alt+Del": [
+        "ControlLeft",
+        "AltLeft",
+        "Delete"
+      ],
+      "Alt+Tab": [
+        "AltLeft",
+        "Tab"
+      ],
+      "Alt+F4": [
+        "AltLeft",
+        "F4"
+      ],
+      "Alt+Enter": [
+        "AltLeft",
+        "Enter"
+      ],
+      "Ctrl+W": [
+        "ControlLeft",
+        "KeyW"
+      ]
+    },
+    "jigglerInterval": 60
+  },
+  "prometheus": {
+    "enabled": false,
+    "username": "admin",
+    "password": "admin",
+    "interval": 15
+  },
+  "switchManager": {
+    "file": "./config/switch.json"
+  },
+  "fan": {
+    "tempThreshold": 65
+  },
+  "healthCheck": {
+    "RAM": 0.6,
+    "storage": 0.7,
+    "latency": 80,
+    "temperature": 70
+  },
+  "janus": {
+    "bin": "./lib/pi/janus",
+    "configsFolder": "./lib/pi/janus_configs",
+    "pluginsFolder": "./lib/pi/janus_plugins"
+  }
+}

@@ -1,0 +1,158 @@
+ {
+    "login":{
+        "username":"Kullanıcı adı",
+        "username_placeholder":"Kullanıcı adı",
+        "password":"Şifre",
+        "password_placeholder":"Şifre",
+        "login":"Login",
+        "login_fail":"Giriş başarısız oldu. Lütfen kimlik bilgilerinizi kontrol edin.",
+        "two_fa_code": "2FA kodu",
+        "two_fa_code_placeholder": "etkinse"
+    },
+    "common":{
+        "available":"Mevcut",
+        "refresh":"Yenile",
+        "device_path": "Cihaz yolu",
+        "reboot_info": "KVM'yi yeniden başlattığınızdan emin misiniz? Web'in yeniden başlatılması birkaç dakikalığına bağlantı kesilecektir."
+    },
+    "button":{
+        "reboot":"Yeniden başlat",
+        "later":"Sonra",
+        "ok":"OK",
+        "cancel":"İptal",
+        "close":"Kapat",
+        "save":"Kaydet"
+    },
+    "label":{
+        "status":"Durum",
+        "created":"Oluşturuldu",
+        "not_created": "Oluşturulmadı",
+        "connected":"Bağlı",
+        "dis_connected":"Bağlantı kesildi",
+        "none": "Hiç",
+        "enable":"Etkinleştirilmiş",
+        "disable":"Engelli",
+        "warning":"Dikkat"
+    },
+    "tab":{
+        "atx":{
+        "tip":"Bilgisayar",
+        "title":"Güç yönetimi",
+        "atx_no_connect":"Engelli",
+        "atx_poweron":"Aç",
+        "atx_poweroff":"Kapat",
+        "atx_forceoff":"Zorla Kapat",
+        "atx_reset":"Sıfırla",
+        "wake_on_lan": "Wake on LAN",
+        "ledPwr":"Power LED",
+        "ledHdd":"HDD LED"
+        },
+        "home":"Ev",
+        "keyboard":"Klavye",
+        "language":{
+            "tip":"Dil",
+            "add":"Dilinizi ekleyin"
+        },
+        "mouse":{
+            "tip":"Fare",
+            "title":"Fare ayarı",
+            "mode":"Modlar",
+            "absolute":"Mutlak",
+            "relative":"Akraba",
+            "soft_hid_enable":"Yazılım HID'sini etkinleştir",
+            "soft_hid_disable":"Yazılım HID'sini devre dışı bırak",
+            "jiggler_enable":"Fare titremesini etkinleştir",
+            "jiggler_disable":"Fare titremesini devre dışı bırak",
+            "change_mode":"Fare modu başarısını değiştirin, KVM'yi ve hedef bilgisayarınızı şimdi yeniden başlatmanız gerekiyor!",
+            "sensitivity":"Hassasiyet",
+            "polling": "Fare yoklaması"
+        },
+        "msd":{
+            "tip":"YDC",
+            "title":"Yığın Depolama Cihazları",
+            "available_images":"Kullanılabilir boot resmiler",
+            "image_name":"Resmi adı",
+            "make_msd_size":"YDC boyutunu ayarla",
+            "make_usb_drive":"USB sürücüsü yap",
+            "abort":"Iptal",
+            "delete_usb_drive":"USB sürücüyü sil",
+            "connect_to_host":"Bilgisayara bağlanın",
+            "refresh_list":"Listeyi yenile",
+            "remove_image_tip":"Resmi kaldır",
+            "remove_image_confirm":"Resmi kaldırmak istediğinizden emin misiniz?"   
+        },
+        "notification":{
+            "tip":"Bildiri",
+            "log":"En son 20 bildirim"
+        },
+        "switch":{
+            "tip":"Switch",
+            "choose_a_model":"Bir model seçin",
+            "choose_a_channel":"Bir kanal seçin",
+            "config": "Yapılandırmayı değiştir"
+        },
+        "text":{
+            "tip":"Metin",
+            "title":"Kopyala ve yapıştır",
+            "paste":"Hedefe yapıştır",
+            "paste_info": "Yalnızca İngilizce'yi destekleyin",
+            "copy":"Metin tanımayla kopyalama",
+            "paste_button":"Yapıştır",
+            "select_area":"Alan seç",
+            "for":"için",
+            "text_recognition":"Metin tanıma"
+        },
+        "user":{
+            "tip":"Kullanıcı Yöneticisi",
+            "logout":"Oturumu kapat",
+            "account_settings":"Hesap Ayarları",
+            "user_setting":"Kullanıcı Ayarı",
+            "new_username":"Yeni Kullanıcı Adı",
+            "new_password":"Yeni Şifre",
+            "confirm_password":"Şifreyi Onayla",
+            "current_password":"Mevcut Şifre",
+            "change_password":"Şifre değiştir",
+            "version":"Sürüm",
+            "docs":"Dokümantasyon",  
+            "dsicord":"Discord",
+            "issue":"Sorun",
+            "two_factor_auth": "İki Faktörlü Kimlik Doğrulama",
+            "two_factor_code": "Kodu uygulamadan doğrulayın",
+            "enable_two_factor": "2FA'yı etkinleştir",
+            "disable_two_factor": "2FA'yı devre dışı bırak"
+        },
+        "video":{
+            "tip":"Video",
+            "title":"Video Ayarları",
+            "mode":"Video modu",
+            "fps":"FPS",
+            "quality":"Kalite",
+            "reset_take_effect":"Etkili olması için sıfırlayın",
+            "Mbps":"Mbps",
+            "gop":"gop",
+            "reset_stream":"Akışı sıfırla",
+            "resolution":"Çözünürlük",
+            "volume":"Hacim",
+            "refresh":"Kapat butonuna bastıktan sonra sayfa 3 saniye sonra otomatik olarak yenilenecek ve normal çalışmasına devam edecektir.",
+            "snapshot" : "Anlık Görüntü Al"
+        },
+        "setting":{
+            "tip":"Ayar",
+            "fetch_version":"Güncellemeleri kontrol edin",
+            "switch_protocol":"Protokolü değiştir",
+            "http":"HTTP",
+            "https":"HTTPS",
+            "reboot_kvm":"KVM'yi yeniden başlatın",
+            "fetch": "Ara",
+            "no_new_version":"Yeni güncelleme yok",
+            "new_version":"Yeni sürümü güncellemek için terminale gidebilirsiniz"
+        },
+        "shortcuts":{
+            "tip":"Kısayollar"
+        },
+        "terminal":"Terminal",
+        "full_screen":"Tam ekran",
+        "full_screen_exit":"Tam Ekrandan Çık",
+        "hide":"Sakla"
+    }
+}

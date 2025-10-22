@@ -1,0 +1,165 @@
+ {
+    "login":{
+        "username":"Username",
+        "username_placeholder":"Enter your username",
+        "password":"Password",
+        "password_placeholder":"Enter your password",
+        "login":"Login",
+        "login_fail":"Login failed. Please check your credentials",
+        "two_fa_code": "2FA code",
+        "two_fa_code_placeholder": "if enabled"
+    },
+    "common":{
+        "available":"Available",
+        "refresh":"Refresh",
+        "device_path": "device path",
+        "reboot_info": "Are you sure to restart KVM? Restarting the web will disconnect for a few minutes."
+    },
+    "button":{
+        "reboot":"Reboot",
+        "later":"Later",
+        "ok":"OK",
+        "cancel":"Cancel",
+        "close":"Close",
+        "save":"Save"
+    },
+    "label":{
+        "status":"Status",
+        "created":"Created",
+        "not_created": "Not Created",
+        "connected":"Connected",
+        "dis_connected":"Disconnected",
+        "none": "None",
+        "enable":"Enabled",
+        "disable":"Disabled",
+        "warning":"Warning"
+    },
+    "tab":{
+        "atx":{
+        "tip":"ATX",
+        "title":"Power Manager",
+        "atx_no_connect":"Disabled",
+        "atx_poweron":"Power ON",
+        "atx_poweroff":"Power OFF",
+        "atx_forceoff":"Force OFF",
+        "atx_reset":"Reset",
+        "wake_on_lan": "Wake on LAN",
+        "ledPwr":"Power LED",
+        "ledHdd":"HDD LED"
+        },
+        "home":"Home",
+        "keyboard":"Keyboard",
+        "language":{
+            "tip":"Language",
+            "add":"Add your language"
+        },
+        "hid":{
+            "loop_block_enable":"Block HID Loop",
+            "loop_block_disable":"Unblock HID Loop"
+        },
+        "mouse":{
+            "tip":"Mouse",
+            "title":"Mouse setting",
+            "mode":"mode",
+            "absolute":"Absolute",
+            "relative":"Relative",
+            "soft_hid_enable":"Enable soft HID",
+            "soft_hid_disable":"Disable soft HID",
+            "jiggler_enable":"Enable mouse jiggler",
+            "jiggler_disable":"Disable mouse jiggler",
+            "change_mode":"change mouse mode success, you need reboot the kvm and your target pc now!",
+            "sensitivity":"Sensitivity",
+            "polling": "Polling"
+        },
+        "msd":{
+            "tip":"MSD",
+            "title":"Mass Storage Devices",
+            "available_images":"Available boot images",
+            "image_name":"Image name",
+            "make_msd_size":"Make MSD size",
+            "make_usb_drive":"Make USB drive",
+            "abort":"Abort",
+            "delete_usb_drive":"Delete USB drive",
+            "connect_to_host":"Connect to host",
+            "refresh_list":"Refresh list",
+            "remove_image_tip":"Remove image",
+            "remove_image_confirm":"Are you sure you want to remove image?"   
+        },
+        "notification":{
+            "tip":"Notification",
+            "log":"The latest 20 logs"
+        },
+        "switch":{
+            "tip":"Switch",
+            "choose_a_model":"Choose a model",
+            "choose_a_channel":"Choose a channel",
+            "config": "Switch config",
+            "no_model_selected": "No model selected"
+        },
+        "text":{
+            "tip":"Text",
+            "title":"copy and paste",
+            "paste":"Paste to target",
+            "paste_info": "Only support eng",
+            "copy":"Copy by text recognition",
+            "paste_button":"Paste",
+            "select_area":"Select area",
+            "for":"for",
+            "text_recognition":"Text recognition"
+        },
+        "user":{
+            "tip":"User Manager",
+            "logout":"Logout",
+            "account_settings":"Account Settings",
+            "user_setting":"User Setting",
+            "new_username":"New Username",
+            "new_password":"New Password",
+            "confirm_password":"Confirm Password",
+            "current_password":"Current Password",
+            "change_password":"Change Password",
+            "version":"Version",
+            "docs":"Docs",  
+            "dsicord":"Discord",
+            "issue":"Issue",
+            "two_factor_auth": "Two-factor authentication",
+            "two_factor_code": "Verify the code from the app",
+            "enable_two_factor": "Enable 2FA",
+            "disable_two_factor": "Disable 2FA"
+        },
+        "video":{
+            "tip":"Video",
+            "title":"Video Settings",
+            "mode":"video mode",
+            "fps":"FPS",
+            "quality":"Quality",
+            "reset_take_effect":"Reset to take effect",
+            "Mbps":"Mbps",
+            "gop":"gop",
+            "reset_stream":"Reset stream",
+            "resolution":"Resolution",
+            "volume":"Volume",
+            "refresh":"After clicking on the close button, the page will automatically refresh after 3 seconds and resume normal operation.",
+            "snapshot" : "Screenshot",
+            "start_record" : "Start recording",
+            "stop_record" : "Stop recording"
+        },
+        "setting":{
+            "tip":"Setting",
+            "fetch_version":"Fetch latest version",
+            "switch_protocol":"Switch protocol",
+            "http":"HTTP",
+            "https":"HTTPS",
+            "reboot_kvm":"Reboot KVM",
+            "fetch": "Fetch",
+            "no_new_version":"No new version",
+            "new_version":"You can go to terminal to update the new version"
+        },
+        "shortcuts":{
+            "tip":"Shortcuts"
+        },
+        "terminal":"Terminal",
+        "full_screen":"Full Screen",
+        "full_screen_exit":"Exit Full Screen",
+        "hide":"Hide"
+    }
+}

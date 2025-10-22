@@ -1,0 +1,15 @@
+{
+  "tags": {
+    "allowUnknownTags": true
+  },
+  "source": {
+    "include": ["src"],
+    "exclude": ["node_modules"]
+  },
+  "opts": {
+    "destination": "./doc/func",
+    "recurse": true,
+    "template": "node_modules/docdash"
+  },
+  "private": true
+}

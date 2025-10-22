@@ -1,0 +1,12 @@
+{
+  "scripts": ["build/src/*.js"],
+  "assets": [
+    "build/src/server/dist/**/*",
+    "node_modules/@serialport/bindings-cpp/prebuilds/**/*",
+    "node_modules/tesseract.js/**/*",
+    "node_modules/unix-dgram/build/**/*",
+    "node_modules/bcrypt/lib/binding/**/*",
+    "node_modules/ffi-napi/build/**/*",
+    "node_modules/ref-napi/prebuilds/**/*"
+  ]
+}

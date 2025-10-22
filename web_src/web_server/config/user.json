@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "Roles": [
+    {
+      "role": "admin",
+      "description": "full access"
+    },
+    {
+      "role": "readonly",
+      "description": "limited access"
+    }
+  ],
+  "Accounts": [
+    {
+      "username": "admin",
+      "password": "$2b$10$iB3xpN8gl/iXusff8d3xCeRJu5M1s71RFgSveZTKuBymerQREUIja",
+      "role": "admin",
+      "isEnabled": true,
+      "isTwoFaEnabled": false,
+      "twoFaSecret": "CN6TP5DCSQRXB4J477RVSWUB3X5WKMBN",
+      "twoFaUri": "otpauth://totp/BliKVM%3Aadmin?secret=CN6TP5DCSQRXB4J477RVSWUB3X5WKMBN&issuer=BliKVM"
+    },
+    {
+      "username": "blikvm",
+      "password": "$2b$10$.3cX/1cVKwgTxERqaYpdL.VVE0ippbiAUFtMJLA77vEcAGuuwgmBS",
+      "role": "readonly",
+      "isEnabled": true,
+      "isTwoFaEnabled": false,
+      "twoFaSecret": "",
+      "twoFaUri": ""
+    }
+  ]
+}
