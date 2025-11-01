@@ -106,11 +106,15 @@ export function useVirtualMedia() {
     try {
       const response = await http.get(`/msd/size`);
       if (response.status === 200 && response.data.code === 0) {
-        const { used, size } = response.data.data;
-        console.log('used:', used, 'size:', size);
+        const { used, size, mount } = response.data.data;
+        console.log('used:', used, 'size:', size, 'mount:', mount);
         maxMSDImageSize.value = convertBytesToGB(size - used);
         device.value.msd.mntTotalSize = convertBytesToGB(size);
         device.value.msd.mntUsedSize = convertBytesToGB(used);
+        if (mount) {
+          // Reflect the actual mount path in UI instead of placeholder
+          device.value.msd.msdDeviceFile = mount;
+        }
         // Update your state with the fetched values
       } else {
         const title = 'Fetch MSD Size';

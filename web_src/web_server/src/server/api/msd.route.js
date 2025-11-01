@@ -115,11 +115,31 @@ async function apiImages(req, res, next) {
   }
 }
 
+// Return used/size for the virtual media mount point.
+// Prefer the configured MSD_MOUNT_DIR, but keep backward-compatible
+// fallbacks for older images (/mnt/msd/ventoy) and legacy /mnt to
+// avoid returning an empty object on mismatched mount paths.
 async function getMntSize(req, res, next) {
   try {
     const returnObject = createApiObj();
-    const { used, size } = await getDiskSpace('/mnt');
-    returnObject.data = { used, size };
+
+    // Try configured mount dir first
+    let stat = await getDiskSpace(MSD_MOUNT_DIR);
+    let mountPath = MSD_MOUNT_DIR;
+    // Backward-compat: old images used /mnt/msd/ventoy
+    if (!stat || !stat.size) {
+      stat = await getDiskSpace('/mnt/msd/ventoy');
+      if (stat && stat.size) mountPath = '/mnt/msd/ventoy';
+    }
+    // Legacy fallback: some environments may still use /mnt directly
+    if (!stat || !stat.size) {
+      stat = await getDiskSpace('/mnt');
+      if (stat && stat.size) mountPath = '/mnt';
+    }
+
+    const used = stat?.used ?? 0;
+    const size = stat?.size ?? 0;
+    returnObject.data = { used, size, mount: mountPath };
     returnObject.code = ApiCode.OK;
     res.json(returnObject);
   } catch (err) {

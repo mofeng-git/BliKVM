@@ -27,7 +27,7 @@
 import fs from 'fs';
 import fsPromises from 'fs/promises';
 import path from 'path';
-import { CONFIG_PATH } from '../common/constants.js';
+import { CONFIG_PATH, MSD_MOUNT_DIR } from '../common/constants.js';
 import readEepromJson from './eepromReader.js';
 import { v4 } from 'uuid';
 import { HardwareType } from './enums.js';
@@ -334,8 +334,16 @@ async function getDiskSpace(path) {
 
 async function readVentoyDirectory(ventoyDirectory) {
   try {
-    // Use getDiskSpace to get disk space information
-    const { used, size } = await getDiskSpace('/mnt');
+    // Use getDiskSpace to get disk space information. Prefer configured mount.
+    let diskStat = await getDiskSpace(MSD_MOUNT_DIR);
+    if (!diskStat || !diskStat.size) {
+      // Backward compatibility with old mount path
+      diskStat = await getDiskSpace('/mnt/msd/ventoy');
+    }
+    if (!diskStat || !diskStat.size) {
+      diskStat = await getDiskSpace('/mnt');
+    }
+    const { used = 0, size = 0 } = diskStat || {};
 
     const files = await fsPromises.readdir(ventoyDirectory);
 
@@ -363,7 +371,7 @@ async function readVentoyDirectory(ventoyDirectory) {
 
     // Filter out undefined values (directories or non-regular files)
     const filteredFileInformation = fileInformation.filter((info) => info);
-    const capacity = (((size - used) / size) * 100).toFixed(2);
+    const capacity = size > 0 ? (((size - used) / size) * 100).toFixed(2) : '0.00';
     return {
       size,
       used,

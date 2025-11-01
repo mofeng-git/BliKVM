@@ -138,15 +138,54 @@ function apiGetSystemInfo(req, res, next) {
         const returnObject = createApiObj();
         returnObject.code = ApiCode.OK;
 
-        // Find the SD card by checking for 'mmcblk0'
-        let sdTotalSpace = 0;
-        const sdCard = disks.find(disk => disk.device === '/dev/mmcblk0'); 
-        if (sdCard) {
-          sdTotalSpace = sdCard.size;
+        // Determine root base device dynamically from the root mount
+        function baseDeviceFromFs(devPath) {
+          // Examples: /dev/mmcblk0p2 -> /dev/mmcblk0
+          //           /dev/sda2     -> /dev/sda
+          //           /dev/nvme0n1p2-> /dev/nvme0n1
+          if (typeof devPath !== 'string') return null;
+          const m = devPath.match(/^\/(dev\/[^\s]+?)(?:p?\d+)?$/);
+          if (m && m[1]) {
+            return `/${m[1]}`;
+          }
+          return null;
         }
+
+        let rootMount = fsData.find(f => f.mount === '/') || null;
+        // Some systems may report overlay/rootfs; fallback to the first real block device entry
+        if (!rootMount || !/^\/dev\//.test(rootMount.fs)) {
+          const firstReal = fsData.find(f => /^\/dev\//.test(f.fs));
+          if (firstReal) rootMount = firstReal;
+        }
+
+        const baseDev = baseDeviceFromFs(rootMount?.fs || '') || '/dev/mmcblk0';
+
+        // Total capacity: find matching disk in diskLayout
+        let sdTotalSpace = 0;
+        let diskEntry = disks.find(d => d.device === baseDev);
+        if (!diskEntry) {
+          // Try matching by name if diskLayout reports names without /dev/
+          diskEntry = disks.find(d => (`/dev/${d.device}`) === baseDev || (`/dev/${d.name}`) === baseDev);
+        }
+        if (!diskEntry) {
+          // As a last resort, pick the largest disk that matches the prefix
+          const candidates = disks.filter(d => baseDev.includes(d.device) || baseDev.includes(`/dev/${d.device}`));
+          if (candidates.length) {
+            diskEntry = candidates.sort((a,b) => (b.size||0) - (a.size||0))[0];
+          }
+        }
+        if (diskEntry && diskEntry.size) {
+          sdTotalSpace = diskEntry.size;
+        }
+
+        // Available space: sum partitions whose device path starts with the base device
         let sdAvailableSpace = fsData
-        .filter(fs => fs.fs.startsWith('/dev/mmcblk0'))
-        .reduce((total, partition) => total + partition.available, 0);
+          .filter(fs => typeof fs.fs === 'string' && fs.fs.startsWith(baseDev))
+          .reduce((total, partition) => total + (partition.available || 0), 0);
+        // Fallback: if none matched, use root mount's available
+        if (sdAvailableSpace === 0 && rootMount && typeof rootMount.available === 'number') {
+          sdAvailableSpace = rootMount.available;
+        }
         const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
         let deviceVersion = config.deviceVersion;
         // console.log('systemData:', systemData);
