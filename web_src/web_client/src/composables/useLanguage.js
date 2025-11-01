@@ -12,13 +12,13 @@ export function useLanguage() {
   // TODO this needs to go into an API
   const _languageList = shallowRef([
     { language: 'en', ocr: 'eng', label: 'English' },
-    { language: 'zh', ocr: 'chi_sim', label: '中国人' },
-    { language: '', ocr: '', label: 'Chinese traditional' },
-    { language: '', ocr: '', label: 'Nederlands' },
-    { language: '', ocr: '', label: 'Français' },
-    { language: '', ocr: '', label: 'русский' },
-    { language: '', ocr: '', label: 'Italiana' },
-    { language: '', ocr: '', label: 'Deutsch' },
+    { language: 'zh', ocr: 'chi_sim', label: '简体中文' },
+    { language: '', ocr: 'chi_tra', label: '繁體中文' },
+    { language: '', ocr: 'nld', label: 'Nederlands' },
+    { language: '', ocr: 'fra', label: 'Français' },
+    { language: '', ocr: 'rus', label: 'Русский' },
+    { language: '', ocr: 'ita', label: 'Italiano' },
+    { language: '', ocr: 'deu', label: 'Deutsch' },
   ]);
 
   const gitHubTranslateUrl =

@@ -30,6 +30,7 @@ import App from './App.vue';
 import { useAppStore } from '@/stores/stores';
 import { storeToRefs } from 'pinia';
 import { registerPlugins } from '@/plugins';
+import { initialLocale } from '@/plugins';
 import { updateAbilityForRole } from '@/plugins';
 import http from '@/utils/http.js';
 import router from '@/router';
@@ -40,6 +41,13 @@ registerPlugins(app);
 (async () => {
   // Ensure the store is initialized before subscribing to changes
   const store = useAppStore();
+  try {
+    const saved = localStorage.getItem('locale');
+    if (!saved) {
+      // If user never chose a language, sync store with detected locale
+      store.misc.language = initialLocale;
+    }
+  } catch (_) { /* ignore */ }
 
   // const { account, security } = storeToRefs(store);
   // console.log(account.value.userRole);

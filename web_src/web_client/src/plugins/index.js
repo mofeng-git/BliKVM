@@ -33,13 +33,42 @@ import messages from '@/utils/locales/messages';
 import { abilitiesPlugin } from '@casl/vue';
 import { defineAbility } from '@casl/ability';
 
+// Detect initial locale (localStorage has priority, else browser language -> 'en'|'zh')
+function normalizeLocale(input) {
+  const s = String(input || '').toLowerCase();
+  if (s.startsWith('zh')) return 'zh';
+  if (s.startsWith('en')) return 'en';
+  return 'en';
+}
+
+let savedLocale = null;
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    savedLocale = window.localStorage.getItem('locale');
+  }
+} catch (_) { /* ignore */ }
+
+const browserLang = (typeof navigator !== 'undefined')
+  ? (navigator.languages && navigator.languages[0]) || navigator.language || 'en'
+  : 'en';
+
+export const initialLocale = savedLocale || normalizeLocale(browserLang);
+
+// Create i18n with detected locale
 const i18n = createI18n({
-  legacy: false, // Make sure legacy mode is off
-  locale: 'en',
-  messages: messages,
+  legacy: false,
+  locale: initialLocale,
+  messages,
   silentTranslationWarn: true,
   silentFallbackWarn: true,
 });
+
+// Sync <html lang> for a11y/SEO
+try {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('lang', initialLocale);
+  }
+} catch (_) { /* ignore */ }
 
 // Define default ability
 const ability = defineAbility((can) => {
@@ -112,3 +141,4 @@ export function registerPlugins(app) {
 }
 
 export { ability };
+export { i18n };

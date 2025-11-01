@@ -41,6 +41,7 @@
     if (locale) {
       misc.value.language = locale;
       proxy.$i18n.locale = locale;
+      try { document.documentElement.setAttribute('lang', locale); } catch (_) {}
     }
   });
 </script>
