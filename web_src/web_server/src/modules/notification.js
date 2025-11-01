@@ -30,10 +30,21 @@ const NotificationType = Object.freeze({
     ERROR: 'error',
 });
 
+// Modules that can emit notifications
+const NotificationModule = Object.freeze({
+    GENERAL: 'general',
+    KEYBOARD: 'keyboard',
+    MOUSE: 'mouse',
+    HID: 'hid',
+    SHORTCUTS: 'shortcuts',
+    ATX: 'atx',
+    FAN: 'fan',
+    DISPLAY: 'display',
+});
+
 class Notification {
     static _instance = null;
     ws = null;
-    _newNotification = false;
 
     constructor() {
         if (!Notification._instance) {
@@ -50,58 +61,79 @@ class Notification {
 
     initWebSocket(ws) {
         this.ws = ws;
-        this.sendMessage();  
+        this.sendMessage();
     }
 
-    addMessage(type, text) {
-        if (!NotificationType[type.toUpperCase()]) {
-            logger.error(`Invalid message type ${type}`);
-            return;
+    addMessage(type = NotificationType.INFO, text, module = NotificationModule.GENERAL) {
+        let normalizedType = String(type || '').toLowerCase();
+        const validTypes = Object.values(NotificationType);
+        if (!validTypes.includes(normalizedType)) {
+            logger.warn(`Unknown notification type '${type}', fallback to '${NotificationType.INFO}'`);
+            normalizedType = NotificationType.INFO;
+        }
+
+        const normalizedModule = String(module || '').toLowerCase();
+        const validModules = Object.values(NotificationModule);
+        const finalModule = validModules.includes(normalizedModule)
+            ? normalizedModule
+            : NotificationModule.GENERAL;
+        if (finalModule !== normalizedModule) {
+            logger.warn(`Unknown notification module '${module}', fallback to '${NotificationModule.GENERAL}'`);
         }
 
         const message = {
-            subtitle: new Date().toLocaleString(),  
-            text: text,
+            timestamp: Date.now(),
+            module: finalModule,
+            text: String(text ?? ''),
         };
 
-        if (this.messages[type].length >= 10) {
-            this.messages[type].shift();
+        if (this.messages[normalizedType].length >= 10) {
+            this.messages[normalizedType].shift();
         }
 
-        this.messages[type].push(message);
+        this.messages[normalizedType].push(message);
 
-        this._newNotification = true; 
-        if(type === NotificationType.ERROR) {
-            this.sendAlert(text);
-        }
         this.sendMessage();
     }
 
     sendMessage() {
         if (this.ws) {
-            const allMessages = Object.keys(this.messages).map(type => ({
-                title: type,
-                contents: this.messages[type],
-            }));
+            // Flatten to an array of message items: { timestamp, type, module, text }
+            const messages = Object.keys(this.messages).flatMap(type => {
+                return this.messages[type].map(m => ({
+                    timestamp: m.timestamp,
+                    type,
+                    module: m.module,
+                    text: m.text,
+                }));
+            });
             const ret = createApiObj();
-            ret.data.newNotification = this._newNotification;
-            ret.data.notification = allMessages;
-            const jsonMessage = JSON.stringify(ret);
-            this.ws.send(jsonMessage);
-            this._newNotification = false;
+            ret.type = 'notification';
+            // Put all content under data; front-end treats arrival as new
+            ret.data.notification = messages;
+            this.ws.send(JSON.stringify(ret));
         } else {
             logger.warn('Notification WebSocket is not initialized.');
         }
     }
-
-    sendAlert(text) {
-        if(this.ws) {
-            const ret = createApiObj();
-            ret.data.alert = text;
-            const jsonMessage = JSON.stringify(ret);
-            this.ws.send(jsonMessage);
-        }
-    }
 }
 
-export {NotificationType, Notification};
+// Module-level singleton and convenience helpers
+const notification = new Notification();
+
+function notifyText(text, module = NotificationModule.GENERAL) {
+    notification.addMessage(NotificationType.INFO, text, module);
+}
+
+const Notify = {
+    // Generic sender with type
+    send: (type, text, module = NotificationModule.GENERAL) => notification.addMessage(type, text, module),
+    // Shorthands
+    info: (text, module = NotificationModule.GENERAL) => notification.addMessage(NotificationType.INFO, text, module),
+    warning: (text, module = NotificationModule.GENERAL) => notification.addMessage(NotificationType.WARNING, text, module),
+    error: (text, module = NotificationModule.GENERAL) => notification.addMessage(NotificationType.ERROR, text, module),
+    // WebSocket init passthrough
+    initWebSocket: (ws) => notification.initWebSocket(ws),
+};
+
+export { NotificationType, NotificationModule, Notification, notification, Notify, notifyText };

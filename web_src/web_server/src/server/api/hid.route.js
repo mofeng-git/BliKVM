@@ -19,16 +19,107 @@
 #                                                                            #
 *****************************************************************************/
 import fs from 'fs';
+import { writeJsonAtomic } from '../../common/atomic-file.js';
 import { ApiCode, createApiObj } from '../../common/api.js';
 import HID from '../../modules/kvmd/kvmd_hid.js';
 import Keyboard from '../keyboard.js';
 import Mouse from '../mouse.js';
 import { CONFIG_PATH, UTF8 } from '../../common/constants.js';
 import { getSupportLang } from '../../modules/hid/keysym.js';
-import {InputEventListener} from '../kvmd_event_listenner.js';
+import {InputEventListener, 
+  startHIDPassthroughListening, stopHIDPassthroughListening
+} from '../kvmd_event_listenner.js';
+
 import Logger from '../../log/logger.js';
 
 const logger = new Logger();
+
+// Normalize VID/PID input: accept number or string (with/without 0x), 1-4 hex digits, return '0x' + 4-digit lower hex
+function normalizeHexId(value, fieldName) {
+  if (value === undefined || value === null) return null;
+  const s = String(value).trim();
+  // If numeric-like
+  if (/^\d+$/.test(s)) {
+    const num = Number(s);
+    if (!Number.isInteger(num) || num < 0 || num > 0xFFFF) {
+      throw new Error(`${fieldName} out of range`);
+    }
+    return `0x${num.toString(16).padStart(4, '0')}`;
+  }
+  // 0x-prefixed or plain hex up to 4 digits
+  const m = s.match(/^(?:0x)?([0-9a-fA-F]{1,4})$/);
+  if (!m) throw new Error(`${fieldName} must be 1-4 hex digits (optional 0x)`);
+  const hex = m[1];
+  return `0x${hex.toLowerCase().padStart(4, '0')}`;
+}
+
+function normalizeNonEmptyString(value, fieldName, maxLen = 64) {
+  if (value === undefined || value === null) return null;
+  const s = String(value).trim();
+  if (!s) throw new Error(`${fieldName} cannot be empty`);
+  if (s.length > maxLen) throw new Error(`${fieldName} too long (>${maxLen})`);
+  return s;
+}
+
+async function apiHIDUpdateIdentity(req, res, next) {
+  try {
+    const ret = createApiObj();
+    const { idVendor, idProduct, manufacturer, product } = req.body || {};
+
+    if (
+      idVendor === undefined &&
+      idProduct === undefined &&
+      manufacturer === undefined &&
+      product === undefined
+    ) {
+      ret.code = ApiCode.INVALID_INPUT_PARAM;
+      ret.msg = 'no fields to update';
+      return res.json(ret);
+    }
+
+    let newVid = null, newPid = null, newManu = null, newProd = null;
+    try {
+      if (idVendor !== undefined) newVid = normalizeHexId(idVendor, 'idVendor');
+      if (idProduct !== undefined) newPid = normalizeHexId(idProduct, 'idProduct');
+      if (manufacturer !== undefined) newManu = normalizeNonEmptyString(manufacturer, 'manufacturer');
+      if (product !== undefined) newProd = normalizeNonEmptyString(product, 'product');
+    } catch (e) {
+      ret.code = ApiCode.INVALID_INPUT_PARAM;
+      ret.msg = e.message;
+      return res.json(ret);
+    }
+
+    await writeJsonAtomic(CONFIG_PATH, (cfg) => {
+      cfg.hid = cfg.hid || {};
+      cfg.hid.identity = cfg.hid.identity || {};
+      if (newVid !== null) cfg.hid.identity.idVendor = newVid;
+      if (newPid !== null) cfg.hid.identity.idProduct = newPid;
+      if (newManu !== null) cfg.hid.identity.manufacturer = newManu;
+      if (newProd !== null) cfg.hid.identity.product = newProd;
+    });
+
+    const { hid } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    ret.code = ApiCode.OK;
+    ret.msg = 'hid identity updated';
+    ret.data = hid.identity;
+    res.json(ret);
+  } catch (err) {
+    next(err);
+  }
+}
+
+function apiHIDGetIdentity(req, res, next) {
+  try {
+    const ret = createApiObj();
+    const { hid } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    ret.code = ApiCode.OK;
+    ret.msg = '';
+    ret.data = hid.identity || {};
+    res.json(ret);
+  } catch (err) {
+    next(err);
+  }
+}
 
 function apiEnableHID(req, res, next) {
   try {
@@ -39,14 +130,9 @@ function apiEnableHID(req, res, next) {
     const keyboard = new Keyboard();
     const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
     let msdEnable;
-    if(config.msd.enable === true){
-      msdEnable = 'enable';
-    }else{
-      msdEnable = 'disable';
-    }
     if (action === 'enable') {
       hid
-        .startService(config.hid.mouseMode,msdEnable)
+        .startService()
         .then(() => {
           mouse.open();
           keyboard.open();
@@ -88,13 +174,20 @@ function apiEnableHID(req, res, next) {
 function apiChangeMode(req, res, next) {
   try {
     const returnObject = createApiObj();
-    const absolute = req.query.absolute;
+    const mouseMode = req.body.mouseMode;
     const hid = new HID();
+    const mouse = new Mouse();
+    const keyboard = new Keyboard();
+    mouse.close();
+    keyboard.close();
     hid
-      .changeMode(absolute)
+      .changeMode(mouseMode)
       .then(() => {
         returnObject.code = ApiCode.OK;
-        returnObject.msg = `hid change mode to absolute:${absolute} successful`;
+        returnObject.msg = `hid change mode to mouseMode:${mouseMode} successful`;
+        mouse._init();
+        mouse.open();
+        keyboard.open();  
         res.json(returnObject);
       })
       .catch((err) => {
@@ -125,6 +218,7 @@ function apiKeyboardPaste(req, res, next) {
     const returnObject = createApiObj();
     const text = req.body.text;
     const lang = req.body.lang;
+    const delay = req.body.delay;
     if (typeof text !== 'string') {
       returnObject.code = ApiCode.INVALID_INPUT_PARAM;
       returnObject.msg = 'input data is not string';
@@ -136,7 +230,7 @@ function apiKeyboardPaste(req, res, next) {
       lang = 'en';
     }
     const keyboard = new Keyboard();
-    keyboard.pasteData(text, lang);
+    keyboard.pasteData(text, lang, delay);
     returnObject.code = ApiCode.OK;
     returnObject.msg = 'paste data ok';
     res.json(returnObject);
@@ -181,19 +275,6 @@ function apiKeyboardShortcuts(req, res, next) {
   }
 }
 
-function apiGetShortcutsConfig(req, res, next) {
-  try {
-    const returnObject = createApiObj();
-    const { hid } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-    returnObject.code = ApiCode.OK;
-    returnObject.msg = 'shortcuts ok';
-    returnObject.data = hid.shortcuts;
-    res.json(returnObject);
-  } catch (err) {
-    next(err);
-  }
-}
-
 function apiHIDLoopBlock(req, res, next) {
   try{
     const { blockFlag } = req.body; 
@@ -220,7 +301,7 @@ function apiHIDLoopStatus(req, res, next) {
     returnObject.msg = '';
     returnObject.data = {
       enabled: hid.pass_through.enabled,
-      blockFlag: flag
+      wheelReverse: hid.pass_through.wheelReverse,
     };
     res.json(returnObject);
   }catch(err){
@@ -229,4 +310,67 @@ function apiHIDLoopStatus(req, res, next) {
 }
 
 
-export { apiEnableHID, apiChangeMode, apiGetStatus, apiKeyboardPaste, apiKeyboardShortcuts, apiGetShortcutsConfig, apiHIDLoopStatus,apiHIDLoopBlock,apiKeyboardPasteLanguage };
+async function apiHIDLoopActive(req, res, next) {
+  try{
+    const { isActive } = req.body; 
+    const returnObject = createApiObj();
+    returnObject.code = ApiCode.OK;
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    if( config.hid.pass_through.enabled === isActive ){
+      returnObject.msg = `HID loop is already ${isActive ? 'enabled' : 'disabled'}`;
+      returnObject.data = {
+        enabled: config.hid.pass_through.enabled,
+      };
+      res.json(returnObject);
+      return;
+    }
+    if(isActive === true) { 
+      startHIDPassthroughListening();
+        await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.hid.pass_through.enabled = true; });
+    }else{
+      stopHIDPassthroughListening();
+        await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.hid.pass_through.enabled = false; });
+    }
+    returnObject.msg = ' HID loop active status changed successfully';
+    returnObject.data = {
+      enabled: JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8)).hid.pass_through.enabled
+    };
+    res.json(returnObject);
+  }catch(err){
+    next(err);
+  }
+}
+
+async function apiHIDLoopUpdate(req, res, next) {
+  try{
+    const { wheelReverse } = req.body; 
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    if( config.hid.pass_through.wheelReverse === wheelReverse ){
+      const returnObject = createApiObj();
+      returnObject.code = ApiCode.OK;
+      returnObject.msg = `HID loop wheel reverse is already ${wheelReverse ? 'enabled' : 'disabled'}`;
+      returnObject.data = {
+        wheelReverse: config.hid.pass_through.wheelReverse
+      };
+      res.json(returnObject);
+      return;
+    }
+    InputEventListener.setWheelReverse(wheelReverse );
+    await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.hid.pass_through.wheelReverse = wheelReverse; });
+    const returnObject = createApiObj();
+    returnObject.code = ApiCode.OK;
+    returnObject.msg = '';
+    returnObject.data = {
+      wheelReverse: JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8)).hid.pass_through.wheelReverse
+    };
+    res.json(returnObject);
+  }catch(err){
+    next(err);
+  }
+}
+
+
+
+export { apiEnableHID, apiChangeMode, apiGetStatus, apiKeyboardPaste, apiKeyboardShortcuts, apiHIDLoopStatus,apiHIDLoopBlock,apiKeyboardPasteLanguage,
+  apiHIDLoopActive, apiHIDLoopUpdate, apiHIDUpdateIdentity, apiHIDGetIdentity
+ };

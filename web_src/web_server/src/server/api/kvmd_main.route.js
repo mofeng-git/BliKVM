@@ -21,6 +21,7 @@
 *****************************************************************************/
 import KVMDMain from '../../modules/kvmd/kvmd_main.js';
 import { ApiCode, createApiObj } from '../../common/api.js';
+import { ModuleState } from '../../common/enums.js';
 
 /**
  * Handles the API request to start the kvmd-main service.
@@ -39,6 +40,7 @@ function apiFunc(req, res, next) {
       kvmdmain
         .startService()
         .then((result) => {
+          ret.msg = 'kvmdmain start success';
           ret.data.state = kvmdmain.state;
           res.json(ret);
         })
@@ -52,6 +54,7 @@ function apiFunc(req, res, next) {
       kvmdmain
         .closeService()
         .then((result) => {
+          ret.msg = 'kvmdmain stop success';
           ret.data.state = kvmdmain.state;
           res.json(ret);
         })
@@ -61,7 +64,41 @@ function apiFunc(req, res, next) {
           ret.data.state = kvmdmain.state;
           res.json(ret);
         });
-    } else {
+    }else if (action === 'restart') {
+      if(kvmdmain.getstate() === ModuleState.RUNNING){
+        kvmdmain
+          .closeService()
+          .then(() => {
+            return kvmdmain.startService();
+          })
+          .then((result) => {
+            ret.msg = 'kvmdmain restart success';
+            ret.data.state = kvmdmain.state;
+            res.json(ret);
+          })
+          .catch((result) => {
+            ret.code = ApiCode.INTERNAL_SERVER_ERROR;
+            ret.msg = result.msg;
+            ret.data.state = kvmdmain.state;
+            res.json(ret);
+          });
+      }else{
+        kvmdmain
+        .startService()
+        .then((result) => {
+          ret.msg = 'kvmdmain start success';
+          ret.data.state = kvmdmain.state;
+          res.json(ret);
+        })
+        .catch((result) => {
+          ret.code = ApiCode.INTERNAL_SERVER_ERROR;
+          ret.msg = result.msg;
+          ret.data.state = kvmdmain.state;
+          res.json(ret);
+        });
+      }
+    } 
+    else {
       ret.msg = 'input invalid kvmdmain command';
       ret.code = ApiCode.INVALID_INPUT_PARAM;
       res.json(ret);

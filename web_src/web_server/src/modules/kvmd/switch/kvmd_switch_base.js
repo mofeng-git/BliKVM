@@ -19,7 +19,7 @@
 #                                                                            #
 *****************************************************************************/
 import { ModuleState } from '../../../common/enums.js';
-import {Notification, NotificationType} from '../../notification.js';
+import { Notify } from '../../notification.js';
 import fs from 'fs';
 import {UTF8, SWITCH_PATH } from '../../../common/constants.js';
 
@@ -71,8 +71,7 @@ class KVMSwitchBase {
   }
 
   sendErrorNotification(text) {
-    const notification = new Notification();
-    notification.addMessage(NotificationType.ERROR, text);
+  Notify.error(text);
   }
 }
 

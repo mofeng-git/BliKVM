@@ -1,0 +1,7 @@
+build
+.codex
+.github
+node_modules
+dist
+*.md
+/build

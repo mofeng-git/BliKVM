@@ -23,7 +23,7 @@ import { SerialPort } from 'serialport';
 import Logger from '../log/logger.js';
 import { CONFIG_PATH, UTF8 } from '../common/constants.js';
 import fs from 'fs';
-import { NotificationType, Notification } from '../modules/notification.js';
+import { Notify } from '../modules/notification.js';
 
 const logger = new Logger();
 let activeSerialConnections = 0;
@@ -37,7 +37,7 @@ function setSerialConfig(path, baudRate) {
 }
 
 const createSerialServer = (ws) => {
-  if (!serialPath || !serialBaudRate) {
+  if (!serialPath || !serialBaudRate || serialPath === 'none') {
     logger.error('Serial port path or baud rate not set. Please configure them first.');
     ws.send('*** Serial port path or baud rate not set. Please configure them first. ***\r\n');
     return;
@@ -110,8 +110,7 @@ const createSerialServer = (ws) => {
 
   serial.on('error', (err) => {
     logger.error(`Serial error: ${err.message}`);
-    const notification = new Notification();
-    notification.addMessage(NotificationType.ERROR, `SERIAL ERROR: ${err.message}`);
+    Notify.error(`SERIAL ERROR: ${err.message}`);
     ws.close();
   });
 };

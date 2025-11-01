@@ -27,16 +27,41 @@
 import fs from 'fs';
 import fsPromises from 'fs/promises';
 import path from 'path';
+import { CONFIG_PATH } from '../common/constants.js';
+import readEepromJson from './eepromReader.js';
 import { v4 } from 'uuid';
 import { HardwareType } from './enums.js';
 import { execSync, exec } from 'child_process';
 import si from 'systeminformation';
 import Logger from '../log/logger.js';
 import { createApiObj } from './api.js';
+import {defaultConfig} from '../modules/update/app_default_config.js';
 
 const logger = new Logger();
 
 let hardwareSysType = HardwareType.UNKNOWN;
+const EEPROM_V5_MATCH = 'BliKVM v5 CM4';
+let eepromDetectStarted = false;
+// 简易同步等待 Promise 的工具：使用 SharedArrayBuffer + Atomics.wait 实现阻塞，并加入超时保护
+function runSync(promise, timeoutMs = parseInt(process.env.EEPROM_SYNC_TIMEOUT_MS || '1500', 10)) {
+  const sab = new SharedArrayBuffer(4);
+  const ia = new Int32Array(sab);
+  let result; let error;
+  promise.then(r => { result = r; Atomics.store(ia, 0, 1); Atomics.notify(ia, 0); })
+         .catch(e => { error = e; Atomics.store(ia, 0, 1); Atomics.notify(ia, 0); });
+  const start = Date.now();
+  while (Atomics.load(ia, 0) === 0) {
+    const elapsed = Date.now() - start;
+    if (elapsed >= timeoutMs) {
+      throw new Error(`runSync timeout after ${timeoutMs}ms`);
+    }
+    // 每次等待不超过剩余时间
+    const waitMs = Math.min(50, Math.max(1, timeoutMs - elapsed));
+    Atomics.wait(ia, 0, 0, waitMs);
+  }
+  if (error) throw error;
+  return result;
+}
 
 /**
  * Checks if a directory exists at the specified path.
@@ -138,12 +163,7 @@ function generateSecret(length) {
  */
 function getHardwareType() {
   if (hardwareSysType === HardwareType.UNKNOWN) {
-    let modelOutput = '';
-    try {
-      modelOutput = execSync('cat /proc/device-tree/model').toString();
-    } catch (error) {
-      modelOutput = '';
-    }
+    const modelOutput = execSync('cat /proc/device-tree/model').toString();
     const pi4bSys = 'Raspberry Pi 4 Model B';
     const mangoPiSys = 'MangoPi Mcore';
     const piCM4Sys = 'Raspberry Pi Compute Module 4';
@@ -154,6 +174,19 @@ function getHardwareType() {
       hardwareSysType = HardwareType.MangoPi;
     } else if (modelOutput.includes(piCM4Sys)) {
       hardwareSysType = HardwareType.CM4;
+      if (!eepromDetectStarted) {
+        eepromDetectStarted = true;
+        if (!fs.existsSync('/dev/i2c-8')) {
+          return hardwareSysType;
+        }
+        try {
+          const meta = runSync(readEepromJson({ length: 256, returnMeta: true }), 1000);
+          if (meta && meta.present && meta.json && meta.json.device_version === EEPROM_V5_MATCH) {
+            hardwareSysType = HardwareType.BliKVMV5CM4;
+          }
+        } catch (e) {
+        }
+      }
     }
   }
   return hardwareSysType;
@@ -256,6 +289,22 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function isMounted(target) {
+  try {
+    // 规范化去掉末尾斜杠
+    if (target.length > 1 && target.endsWith('/')) target = target.slice(0, -1);
+    const data = await fsPromises.readFile('/proc/mounts', 'utf-8');
+    return data.split('\n').some(line => {
+      if (!line) return false;
+      // /proc/mounts 用空格分隔，第二列是挂载点
+      const parts = line.split(' ');
+      return parts[1] === target;
+    });
+  } catch {
+    return false;
+  }
+}
+
 async function getDiskSpace(path) {
   try {
     // 获取磁盘信息
@@ -326,6 +375,45 @@ async function readVentoyDirectory(ventoyDirectory) {
   }
 }
 
+async function readDirectoryFiles(directory) {
+  try {
+    const { used, size } = await getDiskSpace(directory);
+    const files = await fsPromises.readdir(directory);
+
+    const fileInformation = await Promise.all(
+      files.map(async (file) => {
+        const filePath = path.join(directory, file);
+        try {
+          const stats = await fsPromises.stat(filePath);
+
+          // Check if the file is a regular file
+          if (stats.isFile()) {
+            return {
+              name: file,
+              path: filePath,
+              imageSize: stats.size,
+              date: stats.mtime
+            };
+          }
+        } catch (error) {
+          // Handle error for individual file stat
+          console.error(`Error reading file stats for ${file}:`, error);
+        }
+      })
+    );
+
+    // Filter out undefined values (directories or non-regular files)
+    const filteredFileInformation = fileInformation.filter((info) => info);
+    return {
+      size,
+      used,
+      files: filteredFileInformation
+    };
+  } catch (error) {
+    console.error('Error reading directory:', error);
+  }
+}
+
 function processPing(ws, ping) {
   const ret = createApiObj();
   ret.data.pong = ping;
@@ -372,6 +460,21 @@ function getCurrentTimestamp() {
   return `${year}${month}${day}${hours}${minutes}${seconds}`;
 }
 
+let cachedConfig = null;
+function getDefaultConfig() {
+  if (cachedConfig !== null) {
+    return cachedConfig;
+  }
+  if (fs.existsSync(CONFIG_PATH) === false) {
+    cachedConfig = defaultConfig;
+  } else {
+    const configFile = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    cachedConfig = configFile;
+  }
+  return cachedConfig;
+}
+
+
 export {
   dirExists,
   fileExists,
@@ -391,5 +494,9 @@ export {
   readVentoyDirectory,
   processPing,
   getSystemInfo,
+  readDirectoryFiles,
+  isMounted,
+  getDiskSpace,
+  getDefaultConfig,
   getCurrentTimestamp
 };

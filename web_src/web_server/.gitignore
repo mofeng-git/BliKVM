@@ -1,8 +1,0 @@
-node_modules
-temp
-package-lock.json
-release
-doc/func
-config/firmware.json
-build/
-dist/

@@ -1,12 +1,9 @@
 import { execSync } from 'child_process';
 
 function getHardwareTypeForConfig() {
-    let modelOutput = '';
-    try {
-      modelOutput = execSync('cat /proc/device-tree/model').toString();
-    } catch (error) {
-      modelOutput = '';
-    }
+  try {
+    execSync('test -f /proc/device-tree/model', { stdio: 'ignore' });
+    const modelOutput = execSync('cat /proc/device-tree/model').toString();
     const pi4bSys = 'Raspberry Pi 4 Model B';
     const mangoPiSys = 'MangoPi Mcore';
     const piCM4Sys = 'Raspberry Pi Compute Module 4';
@@ -18,12 +15,17 @@ function getHardwareTypeForConfig() {
     } else {
       return 'none';
     }
+  } catch (error) {
+    console.warn('Warning: /proc/device-tree/model not found. Assuming generic hardware ("none").');
+    return 'none';
+  }
 }
 
 const hardware = getHardwareTypeForConfig();
 
 const defaultConfig = {
-    "version": 6,
+    "version": 10,
+    "deviceVersion": "BliKVM",
     "log": {
       "console": {
         "enabled": true,
@@ -48,6 +50,7 @@ const defaultConfig = {
       "protocol": "https",
       "https_port": 443,
       "http_port": 80,
+      "mdnsEnabled": true,
       "ssl": {
         "key": "./lib/https/key.pem",
         "cert": "./lib/https/cert.pem"
@@ -57,11 +60,7 @@ const defaultConfig = {
       "sshUser": "blikvm",
       "sshPassword": "blikvm",
       "auth": true,
-      "authExpiration": 12,
-      "ipWhite": {
-        "enabled": false,
-        "list": []
-      }
+      "authExpiration": 12
     },
     "video": {
       "port": 10004,
@@ -91,6 +90,7 @@ const defaultConfig = {
       "secondaryIP": ""
     },
     "atx": {
+      "isActive": true,
       "controlSockFilePath": "/var/blikvm/atx.sock",
       "stateSockFilePath": "/dev/shm/blikvm/atx",
       "power_on_delay": 500,
@@ -98,10 +98,12 @@ const defaultConfig = {
     },
     "msd": {
       "enable": true,
-      "isoFilePath": "/mnt/msd/user",
       "shell": "./lib/kvmd-msd.sh",
       "stateFilePath": "/mnt/msd/config/msd.json",
       "tusPort": 10002
+    },
+    "mic": {
+      "isRegistered": false
     },
     "hid": {
       "hidEnable": "./lib/hid/enable-gadget.sh",
@@ -113,31 +115,14 @@ const defaultConfig = {
       "jigglerInterval": 60,
       "pass_through": {
         "enabled": false,
-        "blockFlag": false,
+        "wheelReverse": false,
         "mouse_sensitivity": 0.3
       },
-      "shortcuts": {
-        "Ctrl+Alt+Del": [
-          "ControlLeft",
-          "AltLeft",
-          "Delete"
-        ],
-        "Alt+Tab": [
-          "AltLeft",
-          "Tab"
-        ],
-        "Alt+F4": [
-          "AltLeft",
-          "F4"
-        ],
-        "Alt+Enter": [
-          "AltLeft",
-          "Enter"
-        ],
-        "Ctrl+W": [
-          "ControlLeft",
-          "KeyW"
-        ]
+      "identity": {
+        "idVendor": "0x1d6b",
+        "idProduct": "0x0106",
+        "manufacturer": "BliKVM",
+        "product": "Multifunction USB Device"
       }
     },
     "prometheus":{
@@ -154,6 +139,10 @@ const defaultConfig = {
       "storage": 0.7,
       "latency": 80,
       "temperature": 70,
+    },
+    "codeOfConduct":{
+      "isActive": true,
+      "url": ""
     }
 };
 

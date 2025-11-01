@@ -1,165 +1,590 @@
- {
-    "login":{
-        "username":"Username",
-        "username_placeholder":"Enter your username",
-        "password":"Password",
-        "password_placeholder":"Enter your password",
-        "login":"Login",
-        "login_fail":"Login failed. Please check your credentials",
-        "two_fa_code": "2FA code",
-        "two_fa_code_placeholder": "if enabled"
+{
+  "app": {
+    "defaultTitle": "BliKVM Matrix \"KVM-over-IP\"",
+    "subtitle": "Open-Source \"KVM-over-IP\""
+  },
+  "settings": {
+    "title": "Device Configuration",
+    "configuration": "Device Configuration",
+    "device": {
+      "subtitle": "Manage your IP KVM device",
+      "general": {
+        "title": "general",
+        "hardware": "Hardware",
+        "os": "OS",
+        "architecture": "Architecture",
+        "uptime": "Uptime",
+        "timezone": "Timezone",
+        "connectedClients": "Connected clients",
+        "deviceVersion": "Device version",
+        "kvm_device_identity": {
+          "title": "KVM Device Identity",
+          "subtitle": "Customize KVM's identity on target system",
+          "monitorNameField": "Monitor name",
+          "manufacturer": "Manufacturer",
+          "productIdField": "Product ID",
+          "serialNumber": "Serial number"
+        },
+        "display": {
+          "title": "LCD/OLED Display",
+          "subtitle": "",
+          "mode": "Display Mode",
+          "bootMode": "Time display stays on after boot",
+          "intervalMode": "Display On Interval",
+          "secondaryIP": "Secondary IP"
+        },
+        "fan": {
+          "title": "Fan",
+          "tempThresholdField": "Temperature threshold"
+        }
+      },
+      "healthCheck": {
+        "title": "Health Check",
+        "ramThreshold": "RAM threshhold",
+        "storageThreshold": "Storage threshhold",
+        "networkLatencyThreshold": "Network latency threshhold",
+        "temperatureThreshold": "Temperature threshhold"
+      },
+      "systemControl": {
+        "title": "System Control",
+        "subtitle": "Manage KVM device system operations",
+        "warning": "Rebooting will temporarily disconnect all connections and interrupt any ongoing operations.",
+        "rebootButton": "Reboot KVM Device",
+        "confirmTitle": "Confirm System Reboot",
+        "confirmMessage": "Are you sure you want to reboot the KVM device?",
+        "confirmWarning": "This will disconnect all active sessions and the device will be unavailable for approximately 30-60 seconds.",
+        "confirmButton": "Yes, Reboot Now"
+      },
+      "video": {
+        "title": "Video",
+        "subtitle": "Configure your video preferences",
+        "isHDMIActivateField": "HDMI active?",
+        "modeField": "Video Mode",
+        "orientation": "Orientation",
+        "inputFormat": "HDMI input format",
+        "liveFormat": "Live Bitrate/FPS",
+        "desiredFpsField": "Desired Frames per Second",
+        "mjpegQualityField": "Quality",
+        "WebRTCBitrateField": "Bitrate",
+        "WebRTCGopField": "Group of Pictures"
+      },
+      "audio": {
+        "title": "Audio-in",
+        "subtitle": "Configure your audio preferences",
+        "isRegisteredField": "Audio-in registered?",
+        "registerMic": "Register microphone"
+      },
+      "hid": {
+        "title": "Keyboard & Mouse",
+        "subtitle": "Configure Human Inferface Device preferences",
+        "section": "Configuration",
+        "audioVolumeField": "Audio",
+        "audioVolumeHelp": "audio help",
+        "modeField": "USB Device Registration (⚠️ Possible Restart Required)",
+        "modeHelp": "Select the mode for mouse operation. .I have some text for this..",
+        "behaviourField": "Mouse Behaviour Mode (when Dual Mode selected)",
+        "absolute": "Absolute",
+        "relative": "Relative",
+        "registration": {
+          "dual": "Dual Mode (Fast Switching)",
+          "absolute": "Register Absolute Only",
+          "relative": "Register Relative Only"
+        },
+        "isActiveField": "HID active?",
+        "isActiveHelp": "isActiveHelp",
+        "mouseJigglerIntervalField": "Mouse jiggler interval",
+        "mouseJigglerIntervalHelp": "jigglerHelp",
+        "pollingIntervalField": "Polling interval (ms)",
+        "pollingIntervalHelp": "pollingIntervalHelp",
+        "change_mode": "change mouse mode success, you need reboot the kvm and your target pc now!",
+        "relativeSensitivityField": "Mouse Sensitivity",
+        "sensitivity": "Sensitivity"
+      }
     },
-    "common":{
-        "available":"Available",
-        "refresh":"Refresh",
-        "device_path": "device path",
-        "reboot_info": "Are you sure to restart KVM? Restarting the web will disconnect for a few minutes."
+    "gui": {
+      "title": "GUI",
+      "subtitle": "Choose your Web UI settings",
+      "isLocalCursorVisibleField": "Show local cursor in video?",
+      "isLocalCursorVisibleHelp": "hideLocalVideoCursorHelp",
+      "language": {
+        "languageField": "Language",
+        "languageHelp": "LanguageHelp",
+        "helpTranslate": "Help translate"
+      },
+      "alert": {
+        "title": "Alerts",
+        "isAlertField": "Show alerts?",
+        "showAlertHelp": "showAlertHelp",
+        "locationField": "Location",
+        "locationHelp": "Select the location to show the alert."
+      },
+      "cursor": {
+        "title": "Local Cursor"
+      },
+      "temperature": {
+        "title": "Temperature",
+        "unit": "Temperature unit",
+        "celsius": "Celsius",
+        "fahrenheit": "Fahrenheit"
+      },
+      "login": {
+        "title": "Login",
+        "showCocField": "Show Code of Conduct message?",
+        "conductUrlField": "URL"
+      }
     },
-    "button":{
-        "reboot":"Reboot",
-        "later":"Later",
-        "ok":"OK",
-        "cancel":"Cancel",
-        "close":"Close",
-        "save":"Save"
+    "text": {
+      "title": "Text Extraction & Paste",
+      "subtitle": "Control text transfer between device and target system",
+      "paste": {
+        "title": "Paste text",
+        "subtitle": "Send text to the remote machine by simulating individual key presses",
+        "input": "Enter text",
+        "inputHelp": "Enter text",
+        "obfuscate": "Obfuscate",
+        "confirmOnSend": "Confirm on send?",
+        "selectedKeymap": "Use host keymap",
+        "send": "Send",
+        "keymap": "Keymap",
+        "delay": "Delay"
+      },
+      "extract": {
+        "title": "Text extraction",
+        "selectArea": "Select area"
+      }
     },
-    "label":{
-        "status":"Status",
-        "created":"Created",
-        "not_created": "Not Created",
-        "connected":"Connected",
-        "dis_connected":"Disconnected",
-        "none": "None",
-        "enable":"Enabled",
-        "disable":"Disabled",
-        "warning":"Warning"
+    "msd": {
+      "stream": {
+        "subtitle": "Stream images directly from your browser"
+      },
+      "url": {
+        "subtitle": "Access images from any public web address"
+      },
+      "local": {
+        "subtitle": "Access images from your device's storage"
+      },
+      "title": "Virtual Media",
+      "subtitle": "Choose how to connect your Virtual Media",
+      "toolbarTitle": "Boot image(s)",
+      "connectVirtualMedia": "Connect to Virtual Media",
+      "virtualMediaCreate": "Virtual Media create",
+      "deviceFileField": "Device",
+      "deviceFileHelp": "deviceHelp",
+      "disconnectVirtualMedia": "Disconnect Virtual Media",
+      "setMsdSize": "Drive size",
+      "streamSourceUrl": "Stream source URL",
+      "urlSource": "URL Source",
+      "imageName": "Image name",
+      "make_msd_size": "Virtual Media size",
+      "abort": "Abort",
+      "deleteMSD": "Delete Virtual Media",
+      "connect_to_host": "Connect to host",
+      "refreshList": "Refresh list",
+      "deleteImage": "Delete file",
+      "deleteImageConfirm": "Are you sure you want to delete image",
+      "irreversable": "This process is irreversable.",
+      "deleteMsdConfirm": "Are you sure you want to delete Virtual Media?",
+      "resizeFilesystem": "Resize filesystem",
+      "noDataAvailable": "No data available",
+      "uploadOrDrop": "Upload or drop file",
+      "virtualMediaDelete": "Virtual Media delete",
+      "mount": "Mount",
+      "created": "Created",
+      "notCreated": "Not Created",
+      "readyForUse": "Ready for use",
+      "mountImage": "Mount to file manager",
+      "unmountImage": "Uninstall File Manager"
     },
-    "tab":{
-        "atx":{
-        "tip":"ATX",
-        "title":"Power Manager",
-        "atx_no_connect":"Disabled",
-        "atx_poweron":"Power ON",
-        "atx_poweroff":"Power OFF",
-        "atx_forceoff":"Force OFF",
-        "atx_reset":"Reset",
-        "wake_on_lan": "Wake on LAN",
-        "ledPwr":"Power LED",
-        "ledHdd":"HDD LED"
-        },
-        "home":"Home",
-        "keyboard":"Keyboard",
-        "language":{
-            "tip":"Language",
-            "add":"Add your language"
-        },
-        "hid":{
-            "loop_block_enable":"Block HID Loop",
-            "loop_block_disable":"Unblock HID Loop"
-        },
-        "mouse":{
-            "tip":"Mouse",
-            "title":"Mouse setting",
-            "mode":"mode",
-            "absolute":"Absolute",
-            "relative":"Relative",
-            "soft_hid_enable":"Enable soft HID",
-            "soft_hid_disable":"Disable soft HID",
-            "jiggler_enable":"Enable mouse jiggler",
-            "jiggler_disable":"Disable mouse jiggler",
-            "change_mode":"change mouse mode success, you need reboot the kvm and your target pc now!",
-            "sensitivity":"Sensitivity",
-            "polling": "Polling"
-        },
-        "msd":{
-            "tip":"MSD",
-            "title":"Mass Storage Devices",
-            "available_images":"Available boot images",
-            "image_name":"Image name",
-            "make_msd_size":"Make MSD size",
-            "make_usb_drive":"Make USB drive",
-            "abort":"Abort",
-            "delete_usb_drive":"Delete USB drive",
-            "connect_to_host":"Connect to host",
-            "refresh_list":"Refresh list",
-            "remove_image_tip":"Remove image",
-            "remove_image_confirm":"Are you sure you want to remove image?"   
-        },
-        "notification":{
-            "tip":"Notification",
-            "log":"The latest 20 logs"
-        },
-        "switch":{
-            "tip":"Switch",
-            "choose_a_model":"Choose a model",
-            "choose_a_channel":"Choose a channel",
-            "config": "Switch config",
-            "no_model_selected": "No model selected"
-        },
-        "text":{
-            "tip":"Text",
-            "title":"copy and paste",
-            "paste":"Paste to target",
-            "paste_info": "Only support eng",
-            "copy":"Copy by text recognition",
-            "paste_button":"Paste",
-            "select_area":"Select area",
-            "for":"for",
-            "text_recognition":"Text recognition"
-        },
-        "user":{
-            "tip":"User Manager",
-            "logout":"Logout",
-            "account_settings":"Account Settings",
-            "user_setting":"User Setting",
-            "new_username":"New Username",
-            "new_password":"New Password",
-            "confirm_password":"Confirm Password",
-            "current_password":"Current Password",
-            "change_password":"Change Password",
-            "version":"Version",
-            "docs":"Docs",  
-            "dsicord":"Discord",
-            "issue":"Issue",
-            "two_factor_auth": "Two-factor authentication",
-            "two_factor_code": "Verify the code from the app",
-            "enable_two_factor": "Enable 2FA",
-            "disable_two_factor": "Disable 2FA"
-        },
-        "video":{
-            "tip":"Video",
-            "title":"Video Settings",
-            "mode":"video mode",
-            "fps":"FPS",
-            "quality":"Quality",
-            "reset_take_effect":"Reset to take effect",
-            "Mbps":"Mbps",
-            "gop":"gop",
-            "reset_stream":"Reset stream",
-            "resolution":"Resolution",
-            "volume":"Volume",
-            "refresh":"After clicking on the close button, the page will automatically refresh after 3 seconds and resume normal operation.",
-            "snapshot" : "Screenshot",
-            "start_record" : "Start recording",
-            "stop_record" : "Stop recording"
-        },
-        "setting":{
-            "tip":"Setting",
-            "fetch_version":"Fetch latest version",
-            "switch_protocol":"Switch protocol",
-            "http":"HTTP",
-            "https":"HTTPS",
-            "reboot_kvm":"Reboot KVM",
-            "fetch": "Fetch",
-            "no_new_version":"No new version",
-            "new_version":"You can go to terminal to update the new version"
-        },
-        "shortcuts":{
-            "tip":"Shortcuts"
-        },
-        "terminal":"Terminal",
-        "full_screen":"Full Screen",
-        "full_screen_exit":"Exit Full Screen",
-        "hide":"Hide"
+    "storage": {
+      "title": "Storage",
+      "subtitle": "View storage utilization",
+      "freeSize": "Free size"
+    },
+    "atx": {
+      "title": "Remote Power Management",
+      "subtitle": "Hardware-Level Power Control via ATX Pins",
+      "iconInfo": "ATX Power",
+      "showATXField": "Remote Power Management active?",
+      "commandField": "Command",
+      "atx_no_connect": "Disabled",
+      "powerOn": "Power On",
+      "powerOff": "Power Off",
+      "forceOff": "Force Off",
+      "reset": "Reset",
+      "ledPwr": "Power LED",
+      "ledHdd": "HDD LED"
+    },
+    "switch": {
+      "title": "KVM Switch",
+      "subtitle": "Configure your switch",
+      "activeField": "Switch active?",
+      "section": "Configuration",
+      "switch": "",
+      "switchField": "Is switch enabled?",
+      "switchHelp": "switchHelp",
+      "moduleField": "Module",
+      "moduleHelp": "modulelHelp",
+      "channelField": "Channel",
+      "channelHelp": "switchHelp",
+      "selectModel": "Select model",
+      "selectChannel": "Select channel",
+      "deviceFile": "Device",
+      "deviceFileField": "deviceField",
+      "deviceFileHelp": "a device in Unix-like operating systems that represents a USB-to-serial adapter.",
+      "deviceFilePlaceholder": "Enter device"
+    },
+    "network": {
+      "title": "Network",
+      "subtitle": "Manage your network settings",
+      "isHttpsConnectionEnabledHelp": "isDiscoveryEnabledHelp",
+      "isDiscoverableField": "Device discoverable?",
+      "isDiscoverableHelp": "isDiscoveryHelp",
+      "latency": "Network latency",
+      "general": {
+        "hostnameField": "Hostname",
+        "hostnameHelp": "hostnameHelp",
+        "osField": "OS",
+        "fqdnField": "FQDN",
+        "mac": "MAC address",
+        "ip4Field": "IPv4",
+        "dhcp": "DHCP mode",
+        "dynamic": "dynamic",
+        "static": "static"
+      },
+      "services": {
+        "title": "Services",
+        "httpPortField": "HTTP port number",
+        "httpsPortField": "HTTPS port number",
+        "isHttpsConnectionEnabledField": "Enable HTTPS connection?"
+      },
+      "wol": {
+        "add": "Add device",
+        "title": "Wake On LAN",
+        "subtitle": "Send a WOL Magic Packet to wake up a remote device",
+        "refreshList": "Refresh WOL list",
+        "target": "Target",
+        "section": "Target Configuration",
+        "mac": "Mac address (ff:ff:ff:ff:ff:ff)",
+        "macField": "macField",
+        "macHelp": "macHelp",
+        "name": "Device name",
+        "wakeup": "Wakeup",
+        "newDeiviceName": "New device name",
+        "newDeviceMac": "New Mac address"
+      }
+    },
+    "security": {
+      "title": "Security",
+      "subtitle": "Decide how to secure your device",
+      "redirectHttpsField": "Automatically redirect HTTP connection to HTTPS?",
+      "redirectHttpsHelp": "redirectHttpsHelp",
+      "authorization": {
+        "title": "Authorization",
+        "subtitle": "Access Control List",
+        "subtitle1": "Allow List",
+        "subtitle2": "Block List",
+        "allowlist": "Whitelist IP addresses that you trust",
+        "blocklist": "Blacklist IP addresses from logging in",
+        "remove": "Remove from list",
+        "newIPAdress": "New IP address"
+      },
+      "authentication": {
+        "title": "Authentication",
+        "subtitle": "Authentication type",
+        "2faTitle": "Two-Factor Authentication",
+        "isAuthEnabledField": "Use authentication?",
+        "isAuthEnabledHelp": "isAuthEnabledHelp",
+        "is2FaEnabledField": "Use 2FA?",
+        "is2FaEnabledHelp": "is2FA EnabledHelp",
+        "2faScan": "Scan the QR code",
+        "2faScanHelp": "Use an authenticator app or browser extension to scan.",
+        "2faLoading": "Loading QR code",
+        "2faScanKeyHelp": "Unable to scan? Use setup the key",
+        "learnMore": "Learn more",
+        "2faEnterCode": "Enter the provided verification code",
+        "2faFinishInfo": "Your account is now protected with two-factor authentication.",
+        "2faDisabledInfo": "Enter the provided verification code to disable 2FA",
+        "setup": "Setup",
+        "verify": "Verify",
+        "complete": "Complete",
+        "disable": "Disable",
+        "ssh": {
+          "publicKeyfield": "SSH public key"
+        }
+      },
+      "sessionMgmnt": {
+        "title": "Session management",
+        "subtitle": "VPN (Virtual Private Networking)"
+      },
+      "reset": {
+        "title": "Reset Configuration",
+        "subtitle": "Reset configuration to default.\nThis will log you out.",
+        "retainPasswordField": "Keep all passwords unchanged?",
+        "retainPasswordHelp": "retainAdminPasswordHelp",
+        "resetConfig": "Reset Config"
+      },
+      "iam": {
+        "systemField": "IAM system",
+        "systemHelp": "systemHelp",
+        "authMethodField": "Authentication method",
+        "authMethodHelp": "authMethodHelp"
+      },
+      "session": {
+        "isAutoLogoutField": "Automatic logout after 5 min inactivity",
+        "isAutoLogoutHelp": "isAutoLogoutHelp",
+        "vpn": {
+          "ip": "IP address",
+          "isTailscaleEnabledField": "Is Tailscale enabled?",
+          "isTailscaleEnabledHelp": "isTailscaleEnabledHelp"
+        }
+      }
+    },
+    "integrations": {
+      "title": "Integrations",
+      "subtitle": "Integrate with third-party systems",
+      "prometheus": {
+        "title": "Prometheus",
+        "isActiveField": "Use Prometheus?",
+        "isActiveHelp": "isActivedHelp",
+        "endpointField": "Endpoint URL",
+        "endpointHelp": "endpointHelp",
+        "refreshIntervalField": "Refresh interval"
+      },
+      "snmp": {
+        "title": "SNMP monitoring",
+        "isEnabledField": "Is SNMP enabled?",
+        "isEnabledHelp": "isEnabledHelp",
+        "snmpVersionField": "Version",
+        "snmpVersionHelp": "snmpVersionHelp",
+        "snmpCommunityStringField": "Community string",
+        "snmpCommunityStringHelp": "snmpCommunityStringHelp",
+        "snmpHostnameField": "SNMP hostname",
+        "snmpHostnameHelp": "snmpHostnameHelp",
+        "snmpOidField": "Object Identifier",
+        "snmpOidHelp": "snmpOidHelp"
+      },
+      "webhook": {
+        "webhookField": "Webhooks",
+        "webhookHelp": "webhookHelp",
+        "endpointEventField": "Event",
+        "endpointEventHelp": "endpointEventHelp",
+        "endpointNameField": "Endpoint name",
+        "endpointNameHelp": "endpointNameHelp",
+        "endpointURLField": "Endpoint URL",
+        "endpointURLHelp": "endpointURLHelp"
+      }
+    },
+    "scripts": {
+      "title": "Scripts",
+      "subtitle": "Upload and download your favourite scripts"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "subtitle": ""
+    },
+    "serial": {
+      "title": "Serial Terminal",
+      "subtitle": "Interact with target system via serial communication",
+      "section": "Configuration",
+      "serialPortField": "Serial Port",
+      "serialPortHelp": "serialPortHelp",
+      "baudrateField": "Baudrate",
+      "baudrateHelp": "baudrateHelp"
+    },
+    "identity": {
+      "title": "KVM Device Identity",
+      "subtitle": "Customize KVM's identity on target system",
+      "monitorNameField": "Monitor name",
+      "monitorNameHelp": "monitorNameHelp",
+      "manufacturerNameField": "Manufacturer",
+      "manufacturerNameHelp": "manufacturerNameHelp",
+      "productIdField": "Product ID",
+      "productIdHelp": "productIdHelp",
+      "serialField": "Serial number",
+      "serialHelp": "serialHelp"
     }
+  },
+  "login": {
+    "user": "Username",
+    "username": "Username",
+    "userPlaceholder": "Enter your username",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "login": "Login",
+    "logout": "Logout",
+    "otp": "2FA (if enabled)",
+    "loginAccount": "Log in to your device",
+    "secureNotice1": "Secure Environment Notice",
+    "secureNotice2": "You are entering a secure control environment.",
+    "adhere": "Please adhere to the",
+    "eCOC": "Digital Work Environment Code of Conduct",
+    "forbidden": "Unauthorized access is strictly forbidden.",
+    "loginFailed": "Login failed. Please check your credentials"
+  },
+  "common": {
+    "revertLastSaved": "Revert to last saved",
+    "available": "available",
+    "refresh": "Refresh",
+    "noData": "No data",
+    "copy": "Copy",
+    "connect": "connected",
+    "disconnect": "disconnected",
+    "current": "current",
+    "total": "total",
+    "active": "active",
+    "unavailable": "unavailable",
+    "inactive": "Inactive",
+    "download": "Download",
+    "delete": "Delete",
+    "general": "General Info",
+    "remove": "Remove",
+    "add": "Add",
+    "disabled": "Disabled",
+    "basic": "Basic",
+    "use": "Use",
+    "cancel": "Cancel",
+    "close": "Close",
+    "ok": "OK",
+    "configure": "Configure",
+    "overlay": "Overlay",
+    "overlayOn": "Turn overlay on",
+    "overlayOff": "Turn overlay off",
+    "takeSnapshot": "Take snapshot",
+    "startRecording": "Start recording",
+    "stopRecording": "Stop recording",
+    "send": "Send",
+    "fullscreenMode": "Enter full-screen mode",
+    "keyboard": "Keyboard",
+    "mouse": "Mouse",
+    "record": "Record",
+    "recordShortcut": "Record shortcut...",
+    "dismiss": "Dismiss",
+    "seconds": "seconds",
+    "local": "Local",
+    "keypress": "keypress",
+    "version": "Version",
+    "client": "Client",
+    "server": "Server",
+    "used": "Used",
+    "free": "Free",
+    "allowed": "allowed",
+    "blocked": "blocked",
+    "unregister": "unregister",
+    "hide": "Hide",
+    "video": "Video",
+    "sshTerminal": "SSH Terminal",
+    "serialTerminal": "Serial Terminal",
+    "notifications": "Notifications"
+  },
+  "label": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "warning": "Warning // use icon"
+  },
+  "notification": {
+    "title": "Notifications",
+    "subtitle": "......",
+    "log": "The latest 20 logs"
+  },
+  "account": {
+    "title": "Account",
+    "subtitle": "Manage your account",
+    "section": "User Configuration",
+    "users": "users",
+    "isActiveField": "Is active?",
+    "isActivedHelp": "isActiveHelp",
+    "userField": "Username",
+    "userPlaceholder": "usernamePlaceholder",
+    "userHelp": "usernameHelp",
+    "passwordField": "password",
+    "passwordPlaceholder": "Type password",
+    "passwordHelp": "Ensure a strong password",
+    "rePasswordField": "Retype password",
+    "rePasswordPlaceholder": "Retype password",
+    "rePasswordHelp": "'Confirm password",
+    "roleField": "Role",
+    "roleHelp": "Role help",
+    "addUser": "Add user",
+    "changePassword": "Change Password",
+    "user_setting": "TODO User Setting",
+    "new_username": "TODO New Username",
+    "new_password": "TODO New Password",
+    "confirm_password": "TODO Confirm Password",
+    "current_password": "TODO Current Password",
+    "change_password": "TODO Change Password",
+    "docs": "Docs",
+    "discord": "Discord",
+    "issue": "Issue"
+  },
+  "hid": {
+    "section": "Configuration",
+    "audioVolumeField": "Audio",
+    "audioVolumeHelp": "audio help",
+    "modeHelp": "Select the mode for mouse operation. .I have some text for this..",
+    "absolute": "Absolute",
+    "relative": "Relative",
+    "isActiveField": "HID active?",
+    "isActiveHelp": "isActiveHelp",
+    "mouseJigglerIntervalHelp": "jigglerHelp",
+    "pollingIntervalHelp": "pollingIntervalHelp",
+    "change_mode": "change mouse mode success, you need reboot the kvm and your target pc now!",
+    "wheelReverseField": "Reverse mouse wheel?",
+    "passthrough": "HID pass-through?",
+    "passthroughWheelReverseField": "Reverse mouse wheel pass-through?",
+    "sensitivity": "Sensitivity"
+  },
+  "appFooter": {
+    "about": "About BliKVM",
+    "sshTerminal": "SSH Terminal",
+    "serialTerminal": "Serial Terminal"
+  },
+  "terminal": {
+    "clearTerminal": "Clear Terminal",
+    "copyText": "Copy Text",
+    "pasteText": "Paste Text",
+    "scrollToTop": "Scroll to Top",
+    "scrollToBottom": "Scroll to Bottom",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "sshTerminalConsole": "SSH Terminal Console",
+    "copySelection": "Copy selection or all text",
+    "pasteFromClipboard": "Paste from clipboard",
+    "scrollToTopAction": "Scroll to top",
+    "scrollToBottomAction": "Scroll to bottom"
+  },
+  "dataIterator": {
+    "noDataText": "No data available",
+    "rowsPerPageText": "Items per page:",
+    "pageText": "{0}-{1} of {2}"
+  },
+  "diagnostics": {
+    "videoStreamerServerClosed": "Video streamer server is closed",
+    "reconnectMessage": "Attempting to reconnect... {countdownDisplay}s",
+    "reconnectStopMessage": "The maximum number of reconnection attempts has been reached. Please check the device",
+    "reloadWindow": "Reload Window",
+    "reconnectingIn": "Reconnecting in",
+    "retryNow": "Retry Now",
+    "noSignal": "No Signal Detected",
+    "connecting": "Connecting...",
+    "connectionLost": "Connection Lost",
+    "connectionLostDetail": "The connection to the remote server has been lost. You can try to reconnect or reload the page.",
+    "checkDevice": "Please check the device"
+  },
+  "ctrlAltDel": {
+    "confirmTitle": "Send CTRL+ALT+DEL",
+    "confirmMessage": "Are you sure you want to send CTRL+ALT+DEL to the target system?",
+    "warningMessage": "This may interrupt the current session or trigger system actions.",
+    "sendButton": "Send"
+  },
+  "aboutPage": {
+    "newVersion": "New version",
+    "runCommandTip": "Run this command via external terminal:",
+    "dontShowAfterLogin": "Don't show after login",
+    "updating": "Updating",
+    "startUpgrade": "Start Upgrade",
+    "runningLatestVersion": "Running latest version"
+  }
 }

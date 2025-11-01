@@ -1,0 +1,36 @@
+{
+  "events": [
+    {
+      "event": "device_online",
+      "description": "Device comes online"
+    },
+    {
+      "event": "device_offline",
+      "description": "Device goes offline"
+    },
+    {
+      "roeventle": "temperature_alert",
+      "description": "Temperature exceeds threshold"
+    },
+    {
+      "event": "storage_alert",
+      "description": "Low disk space warning"
+    },
+    {
+      "event": "login_attempt",
+      "description": "Successful or failed login"
+    }
+  ],
+  "items": [
+    {
+      "event": "storage_alert",
+      "name": "my webhook1",
+      "url": "https://stream1"
+    },
+    {
+      "event": "device_online",
+      "name": "my webhook2",
+      "url": "https://stream2"
+    }
+  ]
+}

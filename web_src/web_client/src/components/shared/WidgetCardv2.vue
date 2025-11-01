@@ -1,4 +1,3 @@
-
 <!--
 ****************************************************************************
 #                                                                            #
@@ -22,10 +21,10 @@
 ****************************************************************************
 -->
 <script setup lang="ts">
-const props = defineProps({
-  title: String,
-  hideaction: Boolean
-});
+  const props = defineProps({
+    title: String,
+    hideaction: Boolean,
+  });
 </script>
 
 <template>

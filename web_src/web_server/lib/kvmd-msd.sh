@@ -33,6 +33,10 @@ usb_dis_gadget_sh="$SCRIPT_DIR/hid/disable-gadget.sh"
 msd_config_dir="/mnt/msd/config/"
 msd_shm_dir="/dev/shm/blikvm/"
 msd_json="msd.json"
+img_created=""
+img_connected=""
+file_mount_flag=""
+file_device_handle=""
 
 while getopts "c:f:s:n:h:t:" opt; do
   case $opt in
@@ -49,7 +53,8 @@ while getopts "c:f:s:n:h:t:" opt; do
                 TYPE="$OPTARG"
                 ;;
     f)
-                iso_files+=("$OPTARG")
+                file_param=("$OPTARG")
+                read -ra iso_files <<< "$file_param"
                 ;;
     h|*)
                 usage
@@ -80,6 +85,13 @@ update_json()
         jq --arg key $1 --arg value $2 '.[$key] = $value' $msd_config_dir$msd_json > $msd_config_dir/temp.json
         mv $msd_config_dir/temp.json $msd_config_dir$msd_json
         cp $msd_config_dir$msd_json $msd_shm_dir$msd_json
+}
+
+get_json()
+{
+    img_created=$(jq -r '.msd_img_created' "$msd_config_dir$msd_json")
+    img_connected=$(jq -r '.msd_status' "$msd_config_dir$msd_json")
+    file_mount_flag=$(jq -r '.file_mount_flag' "$msd_config_dir$msd_json")
 }
 
 
@@ -127,141 +139,109 @@ then
 fi
 
 case ${CMD} in
-    forward)
-        #mount -o remount,rw /
-
-        if [ -f  "$ventoy_dir/"$MSD_NAME".img" ]
+    unmount_image)
+        echo "unmount_image"
+        get_json
+        echo "unmount_image 2" 
+        if [ "$file_mount_flag" == "false" ]
         then
-                bash $usb_dis_gadget_sh
-                bash $usb_gadget_sh
+                echo "image is not mounted, please first mount it."
+                exit 1
+        else 
+                dev_candidates=($(losetup -l | grep $MSD_NAME | grep -v delete | awk '{print $1}'))
 
-                cd  $ventoy_dir
-
-                losetup -f $MSD_NAME".img"
-
-                losetup -l | grep $MSD_NAME
-
-                dev_name=`losetup -l | grep $MSD_NAME | grep -v delete | awk 'NR==1{print $1}'`
-
-                echo $dev_name
-
-                mkdir -p $mount_dist_dir
-
-                mount  $dev_name $mount_dist_dir;
-
-                if [ $? -ne 0 ]
-                then
-                        echo "mount  $dev_name"p1" fail"
-                fi
-
-
-                if [ ! -d  $iso_dir ]
-                then
-                        mkdir -p  $iso_dir
-                        exit 1
-                fi
-                
-                traverse_dir $iso_dir
-                for name in ${iso_file_name[@]}
-                do
-                        #echo ${name##*/}
-                        echo $mount_dist_dir${name##*/}
-                        if [ -f $mount_dist_dir${name##*/} ] || [ -d $mount_dist_dir${name##*/} ]
-                        then
-                                continue
+                # 从中找一个有p1分区设备的
+                for dev in "${dev_candidates[@]}"; do
+                        if [ -b "${dev}p1" ]; then
+                                file_device_handle=$dev
+                                break
                         fi
-                        sleep 3
-                        echo "${name} again!"
-                        cp -rf "${name}" "$mount_dist_dir";
-                        if [ $? -ne 0 ]
-                        then
-                                echo "default cp failed"
-                        else
-                                echo "default cp ${name} sucess!"
-                        fi
-                        sync
                 done
 
-                umount -f $dev_name
+                if [ -z "$file_device_handle" ]; then
+                        echo "没有找到带分区的loop设备,挂载失败"
+                        exit 1
+                fi
+                if mountpoint -q "$mount_dist_dir"; then
+                        umount $mount_dist_dir 
+                fi
                 sleep 1
-                losetup -d $dev_name
-
-                bash $usb_dis_gadget_sh
-                bash $usb_gadget_sh
-
-                #mount -o remount,ro /
-        else
-                echo "there is no iso file, please first make iso file."
+                losetup -d $file_device_handle
+                if [ $? -ne 0 ]
+                then
+                        echo "umount  $file_device_handle"p1" fail"
+                        update_json file_mount_flag false
+                        exit 1
+                else
+                        echo "umount  $file_device_handle"p1" success"
+                        update_json file_mount_flag false
+                fi
         fi
+
         ;;
 
-    rever)
-	#mount -o remount,rw /
-
-        if [ -f  "$ventoy_dir/"$MSD_NAME".img" ]
+    mount_image)
+        get_json
+        if [ "$img_created" != "created" ]
         then
-                echo "update file exist" 
-                cd  $ventoy_dir
-                if [ -f  $ventoy_dir/$MSD_NAME".img" ]
-                then
-                        mv $MSD_NAME".img" $MSD_NAME".img_bak"
-                fi
-                bash $usb_dis_gadget_sh
-                bash $usb_gadget_sh
-
-                if [ -f  $ventoy_dir/$MSD_NAME".img_bak" ]
-                then
-                        mv $MSD_NAME".img_bak" $MSD_NAME".img"
-                fi
-
-                losetup -f $MSD_NAME".img"
-
-                losetup -l | grep $MSD_NAME
-
-                dev_name=`losetup -l | grep $MSD_NAME | grep -v delete | awk 'NR==1{print $1}'`
-
-                echo $dev_name
-
-                mkdir -p $mount_dist_dir
-
-                mount  $dev_name $mount_dist_dir;
-
-                if [ $? -ne 0 ]
-                then
-                        echo "mount  $dev_name"p1" fail"
-                fi
-
-                cp -rf  "$mount_dist_dir"*  $iso_dir
-
-                if [ $? -ne 0 ]
-                then
-                        echo "default cp failed"
-                else
-                        echo "default cp * sucess!"
-                fi
-
-                umount $mount_dist_dir 
-                sleep 1
-                losetup -d $dev_name
-
-                bash $usb_dis_gadget_sh
-                bash $usb_gadget_sh
-
-                #mount -o remount,ro /
+                echo "not created, please first make image."
+                exit 1
         fi
+        if [ "$img_connected" == "connected" ]
+        then
+                echo "Now is connected, please first disconnect image."
+                exit 1
+        fi
+
+        cd  $ventoy_dir
+
+
+        if [ -f  $ventoy_dir/$MSD_NAME".img_bak" ]
+        then
+                mv $MSD_NAME".img_bak" $MSD_NAME".img"
+        fi
+
+        losetup -fP $MSD_NAME".img"
+
+        losetup -l | grep $MSD_NAME
+
+        dev_candidates=($(losetup -l | grep $MSD_NAME | grep -v delete | awk '{print $1}'))
+
+        # 从中找一个有p1分区设备的
+        for dev in "${dev_candidates[@]}"; do
+                if [ -b "${dev}p1" ]; then
+                        file_device_handle=$dev
+                        break
+                fi
+        done
+
+        if [ -z "$file_device_handle" ]; then
+                echo "没有找到带分区的loop设备,挂载失败"
+                exit 1
+        fi
+
+        echo "Mounting partition: ${file_device_handle}p1"
+
+        mkdir -p $mount_dist_dir
+
+        mount ${file_device_handle}p1 $mount_dist_dir
+
+        if [ $? -ne 0 ]
+        then
+                echo "mount  $file_device_handle"p1" fail"
+                update_json file_mount_flag false
+        else
+                echo "mount  $file_device_handle"p1" success"
+                update_json file_mount_flag true
+        fi
+
 	;;
 
     make)
-#       if [ $# -gt 2 ]
-#       then
-#               echo "param need point one, or default 0 use iso all img."
-#       fi
-
-        #mount -o remount,rw /
 
         if [ -f  "$ventoy_dir/"$MSD_NAME".img" ]
         then
-                echo "update file exist"
+                echo "image already exist"
                 cd  $ventoy_dir
         else
                 if [ ! -d  $ventoy_dir ]
@@ -269,7 +249,7 @@ case ${CMD} in
                         mkdir -p  $ventoy_dir
                 fi
                 cd  $ventoy_dir
-                echo "update file not exist,please wait..."
+                echo "image not exist,please wait..."
 
                 #dd if=/dev/zero of=$MSD_NAME".img" bs=1M count=$((VENTOY_SIZE*1024)) status=progress;
                 truncate -s "${VENTOY_SIZE}G" "${MSD_NAME}.img"
@@ -307,98 +287,67 @@ case ${CMD} in
                 echo "mount  $dev_name"p1" fail"
         fi
 
-        #cp -r "/usr/bin/blikvm/ventoy-1.0.88/plugin/ventoy" "$mount_dist_dir"
-
-        #if [ $? -eq 0 ]
-        #then
-        #       echo "cp plugin ventoy sucess!!!"
-        #fi
-
-        #echo $PWD
-
-        # if [ "${FILE}" != "*" ];then
-        #         file_name=${FILE}
-        #         echo "param correct"
-        #         echo $mount_dist_dir${file_name##*/}
-        #         if [[ -f $mount_dist_dir${file_name##*/} && -f "$iso_dir/${file_name}" ]]
-        #         then
-        #                 echo "exist update file: ${file_name},rm it "
-
-        #                 rm -f $mount_dist_dir${file_name##*/}
+        # echo "ISO files: ${iso_files[@]}"
+        # if [ ${#iso_files[@]} -ne 0 ]; then
+        #         echo "Making MSD with the following ISO files:"
+        #         temp_file_list=$(mktemp)
+        #         for file_name in "${iso_files[@]}"; do
+        #         if [ "$file_name" != "*" ]; then
+        #                 src_file="$iso_dir/$file_name"
+        #                 dest_file="$mount_dist_dir${file_name##*/}"
+        #                 if [[ -f "$dest_file" && -f "$src_file" ]]; then
+        #                 echo "exist update file: $file_name, rm it"
+        #                 rm -f "$dest_file"
         #                 sync
+        #                 fi
+        #                 echo "$src_file" >> "$temp_file_list"
         #         fi
-        #         sleep 1
-        #         echo "$iso_dir/${file_name}"
-        #         #cp "$iso_dir/${file_name}" "$mount_dist_dir"
-        #         rsync -a --progress "$iso_dir/${file_name}" "$mount_dist_dir"
-        #         if [ $? -ne 0 ]
-        #         then
-        #                 echo "cp failed"
+        #         done
+
+        #         if [ -s "$temp_file_list" ]; then
+        #         rsync -a --progress --no-relative --files-from="$temp_file_list" / "$mount_dist_dir"
+        #         if [ $? -ne 0 ]; then
+        #                 echo "rsync failed"
         #         else
-        #                 echo "cp $iso_dir/${file_name} sucess!"
+        #                 echo "rsync success!"
         #         fi
         #         sync
+        #         else
+        #         echo "No valid files to copy"
+        #         fi
 
-        echo "ISO files: ${iso_files[@]}"
-        if [ ${#iso_files[@]} -ne 0 ]; then
-                echo "Making MSD with the following ISO files:"
-                temp_file_list=$(mktemp)
-                for file_name in "${iso_files[@]}"; do
-                if [ "$file_name" != "*" ]; then
-                        src_file="$iso_dir/$file_name"
-                        dest_file="$mount_dist_dir${file_name##*/}"
-                        if [[ -f "$dest_file" && -f "$src_file" ]]; then
-                        echo "exist update file: $file_name, rm it"
-                        rm -f "$dest_file"
-                        sync
-                        fi
-                        echo "$src_file" >> "$temp_file_list"
-                fi
-                done
+        #         rm -f "$temp_file_list"
+        # else
+        #         if [ ! -d  $iso_dir ]
+        #         then
+        #                 mkdir -p  $iso_dir
+        #                 exit 1
+        #         fi
+        #         traverse_dir $iso_dir
+        #         for name in ${iso_file_name[@]}
+        #         do
+        #                 #echo ${name##*/}
+        #                 echo $mount_dist_dir${name##*/}
+        #                 if [ -f $mount_dist_dir${name##*/} ] || [ -d $mount_dist_dir${name##*/} ]
+        #                 then
+        #                         echo "exist update file: ${name},rm it "
+        #                         rm -rf $mount_dist_dir${name##*/}
+        #                         sync
+        #                 fi
+        #                 sleep 1
+        #                 echo "${name} again!"
+        #                 #cp -rf "${name}" "$mount_dist_dir";
+        #                 rsync -a --progress "${name}" "$mount_dist_dir"
+        #                 if [ $? -ne 0 ]
+        #                 then
+        #                         echo "default cp failed"
+        #                 else
+        #                         echo "default cp ${name} sucess!"
+        #                 fi
+        #                 sync
+        #         done
+        # fi
 
-                if [ -s "$temp_file_list" ]; then
-                rsync -a --progress --no-relative --files-from="$temp_file_list" / "$mount_dist_dir"
-                if [ $? -ne 0 ]; then
-                        echo "rsync failed"
-                else
-                        echo "rsync success!"
-                fi
-                sync
-                else
-                echo "No valid files to copy"
-                fi
-
-                rm -f "$temp_file_list"
-        else
-                if [ ! -d  $iso_dir ]
-                then
-                        mkdir -p  $iso_dir
-                        exit 1
-                fi
-                traverse_dir $iso_dir
-                for name in ${iso_file_name[@]}
-                do
-                        #echo ${name##*/}
-                        echo $mount_dist_dir${name##*/}
-                        if [ -f $mount_dist_dir${name##*/} ] || [ -d $mount_dist_dir${name##*/} ]
-                        then
-                                echo "exist update file: ${name},rm it "
-                                rm -rf $mount_dist_dir${name##*/}
-                                sync
-                        fi
-                        sleep 1
-                        echo "${name} again!"
-                        #cp -rf "${name}" "$mount_dist_dir";
-                        rsync -a --progress "${name}" "$mount_dist_dir"
-                        if [ $? -ne 0 ]
-                        then
-                                echo "default cp failed"
-                        else
-                                echo "default cp ${name} sucess!"
-                        fi
-                        sync
-                done
-        fi
         if [ "$TYPE" = "ventoy" ] 
         then
                 umount -f $dev_name"p1"
@@ -427,6 +376,7 @@ case ${CMD} in
         cd  $ventoy_dir
         if [ -f  $ventoy_dir/$MSD_NAME".img" ]
         then
+                echo "disconnect file exist"
                 mv $MSD_NAME".img" $MSD_NAME".img_bak"
         fi
         bash $usb_dis_gadget_sh
@@ -457,7 +407,7 @@ case ${CMD} in
     status)
         set +x
         echo
-        echo "ISO images in $iso_dir"; ls -l $iso_dir
+        echo "ISO images in $iso_dir";
         echo
         echo "Ventoy images in $ventoy_dir"; ls -l $ventoy_dir
         if [ -e $ventoy_dir/*.img* ]; then

@@ -1,4 +1,3 @@
-
 <!--
 ****************************************************************************
 #                                                                            #
@@ -26,7 +25,6 @@
     <v-main>
       <router-view />
     </v-main>
-
   </v-app>
 </template>
 
@@ -35,19 +33,23 @@
 </script>
 
 <style>
-html, body, #app {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
+  html,
+  body,
+  #app {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
 
-html{
-  overflow-y: hidden;
-}
+  html {
+    overflow-y: hidden;
+  }
 
-.v-application, .v-application_wrap,.v-main{
-  height: 100%;
-  width: 100%;
-}
+  .v-application,
+  .v-application_wrap,
+  .v-main {
+    height: 100%;
+    width: 100%;
+  }
 </style>

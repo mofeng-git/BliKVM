@@ -1,171 +1,227 @@
-#!/bin/bash
-### Create package dir (when dpkg -b blikvm-xxx will create blikvm-xxx.deb package)
+#!/usr/bin/env bash
 
-# Now only require hardware type; version is read from /usr/bin/blikvm/package.json after it is copied
-if [ -z "${1:-}" ]; then
-  echo "Usage: $0 <hardware_type: pi|allwinner>"
-  exit 1
-fi
+# Strict mode + safe IFS
+set -Eeuo pipefail
+IFS=$'\n\t'
 
-HARDWARE_TYPE=$1
-VERSION=""  # will be populated from /usr/bin/blikvm/package.json later
+#
+# BliKVM deb packer
+# - Standardized script style
+# - Auto-detect architecture (amd64/arm64/armhf)
+# - Support hardware types (pi / allwinner)
+# - No writes to system paths; build root tree in staging dir
+#
 
+usage() {
+  cat >&2 <<'USAGE'
+Usage: script/packdeb.sh <hardware_type>
 
-# 定义函数检查并删除目录
-check_and_remove_dir() {
-  if [ -d "$1" ]; then
-    echo "Directory $1 exists. Removing..."
-    rm -rf "$1"
-  fi
+Args:
+  hardware_type   pi | allwinner
 
-  DEB_FILE="$1.deb"
-  if [ -f "$DEB_FILE" ]; then
-    echo "File $DEB_FILE exists. Removing..."
-    rm -f "$DEB_FILE"
-  fi
+Optional env vars:
+  DEB_ARCH       Target arch (amd64|arm64|armhf); auto-detected by default
+  OUT_DIR        Output directory; defaults to repo root
+
+Examples:
+  script/packdeb.sh pi
+  DEB_ARCH=armhf script/packdeb.sh allwinner
+USAGE
 }
 
-prefix=""
-
-if [ "$HARDWARE_TYPE" == "pi" ]; then
-  prefix="v1-v2-v3"
-elif [ "$HARDWARE_TYPE" == "allwinner" ]; then
-  prefix="v4"
-else
-  echo "Invalid hardware type. Exiting..."
-  exit 1
+if [[ ${1:-} == "-h" || ${1:-} == "--help" || -z ${1:-} ]]; then
+  usage
+  [[ -z ${1:-} ]] && exit 1 || exit 0
 fi
 
-echo "prefix: $prefix"
+HARDWARE_TYPE="$1"
 
-check_and_remove_dir "blikvm-$prefix"
-cd web_src
-bash pack.sh "$HARDWARE_TYPE"
-cd ../
-cp script/package.json /usr/bin/blikvm
-cp /mnt/blikvm/package/kvmd-web/start.sh /usr/bin/blikvm
-rm -rf /mnt/exec/*
-cp -r /mnt/blikvm/web_src/web_server/release /mnt/exec/
-cp /mnt/blikvm/package/kvmd-web/kvmd-web.service /lib/systemd/system/
-mkdir -p blikvm-$prefix
-cd blikvm-$prefix
-mkdir -p DEBIAN
+case "$HARDWARE_TYPE" in
+  pi)        PKG_PREFIX="v1-v2-v3" ;;
+  allwinner) PKG_PREFIX="v4" ;;
+  *) echo "ERROR: Unsupported hardware type: $HARDWARE_TYPE (only: pi | allwinner)" >&2; exit 2 ;;
+esac
 
+# Detect repo root from this script's location
+REPO_ROOT=$(cd -- "$(dirname -- "$0")/.." && pwd -P)
+WEB_SRC_DIR="$REPO_ROOT/web_src"
+SERVICE_FILE="$REPO_ROOT/package/kvmd-web/kvmd-web.service"
+START_SH="$REPO_ROOT/package/kvmd-web/start.sh"
+PKG_JSON_SRC="$REPO_ROOT/script/package.json"
 
-# Read version from the copied /usr/bin/blikvm/package.json
-PKG_JSON="/usr/bin/blikvm/package.json"
-if [ ! -f "$PKG_JSON" ]; then
-  echo "ERROR: $PKG_JSON not found; ensure previous copy step succeeded"
-  exit 1
-fi
+[[ -f "$PKG_JSON_SRC" ]] || { echo "ERROR: Version file not found: $PKG_JSON_SRC" >&2; exit 3; }
+[[ -f "$SERVICE_FILE" ]] || { echo "ERROR: systemd service not found: $SERVICE_FILE" >&2; exit 3; }
+[[ -f "$START_SH" ]] || { echo "ERROR: start script not found: $START_SH" >&2; exit 3; }
 
+# Build web artifacts
+(
+  cd "$WEB_SRC_DIR"
+  bash pack.sh "$HARDWARE_TYPE"
+)
+
+# Read version from script/package.json
 if command -v jq >/dev/null 2>&1; then
-  VERSION=$(jq -r '.version' "$PKG_JSON")
+  VERSION=$(jq -r '.version' "$PKG_JSON_SRC")
 else
-  # Fallback parser without jq
-  VERSION=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/p' "$PKG_JSON" | head -n1)
+  VERSION=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/p' "$PKG_JSON_SRC" | head -n1)
 fi
 
-if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-  echo "ERROR: Failed to parse version from $PKG_JSON"
-  exit 1
+if [[ -z "${VERSION:-}" || "$VERSION" == "null" ]]; then
+  echo "ERROR: Failed to parse version from: $PKG_JSON_SRC" >&2
+  exit 4
 fi
 echo "Using version(raw): $VERSION"
 
-# Debian control requires version to start with a digit; strip leading non-digits (e.g., leading 'v')
+# Debian: version must start with a digit (strip leading 'v')
 VERSION_DEB=$(printf '%s' "$VERSION" | sed -E 's/^[^0-9]*([0-9].*)$/\1/')
-if ! echo "$VERSION_DEB" | grep -Eq '^[0-9]'; then
-  echo "ERROR: Sanitized version still invalid: $VERSION_DEB"
-  exit 1
+if ! [[ "$VERSION_DEB" =~ ^[0-9] ]]; then
+  echo "ERROR: Invalid deb version: $VERSION_DEB" >&2
+  exit 5
 fi
 echo "Using version(deb): $VERSION_DEB"
 
+# Determine architecture (allow override via DEB_ARCH)
+detect_arch() {
+  if [[ -n "${DEB_ARCH:-}" ]]; then
+    echo "$DEB_ARCH"
+    return
+  fi
+  if command -v dpkg >/dev/null 2>&1; then
+    dpkg --print-architecture
+    return
+  fi
+  # Fallback to uname mapping
+  local um; um=$(uname -m)
+  case "$um" in
+    x86_64) echo amd64 ;;
+    aarch64) echo arm64 ;;
+    armv7l|armv6l) echo armhf ;;
+    *) echo "$um" ;;
+  esac
+}
 
+DEB_ARCH=$(detect_arch)
+case "$DEB_ARCH" in
+  amd64|arm64|armhf) : ;;
+  *) echo "WARNING: Unknown arch '$DEB_ARCH'; writing control anyway." >&2 ;;
+esac
+echo "Packaging for arch: $DEB_ARCH"
 
-## When updating dependencies, it is necessary to synchronize the updates in the updte.py script
-cat << EOF > DEBIAN/control
+# Prepare staging directory
+STAGE_DIR="blikvm-$PKG_PREFIX"
+OUT_DIR="${OUT_DIR:-$REPO_ROOT}"
+
+rm -rf "$STAGE_DIR" "$OUT_DIR/"blikvm-"$PKG_PREFIX"*.deb 2>/dev/null || true
+mkdir -p "$STAGE_DIR/DEBIAN" \
+         "$STAGE_DIR/usr/bin/blikvm" \
+         "$STAGE_DIR/lib/systemd/system" \
+         "$STAGE_DIR/mnt/exec"
+
+# Copy payload into staging tree (no writes to system paths)
+install -m 0644 "$PKG_JSON_SRC" "$STAGE_DIR/usr/bin/blikvm/package.json"
+install -m 0755 "$START_SH" "$STAGE_DIR/usr/bin/blikvm/start.sh"
+
+# Web server release -> /mnt/exec/release
+if [[ -d "$REPO_ROOT/web_src/web_server/release" ]]; then
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete --exclude 'config/*' "$REPO_ROOT/web_src/web_server/release" "$STAGE_DIR/mnt/exec/"
+  else
+    # rsync not available; fallback to cp (does not exclude config)
+    cp -a "$REPO_ROOT/web_src/web_server/release" "$STAGE_DIR/mnt/exec/"
+  fi
+else
+  echo "WARNING: web_server/release not found; package content may be incomplete" >&2
+fi
+
+# systemd unit
+install -m 0644 "$SERVICE_FILE" "$STAGE_DIR/lib/systemd/system/kvmd-web.service"
+
+# Create control file
+cat > "$STAGE_DIR/DEBIAN/control" <<EOF
 Package: blikvm
 Version: $VERSION_DEB
-Architecture: arm64
+Architecture: $DEB_ARCH
 Maintainer: info@blicube.com
-Depends: libconfig-dev,jq,libxkbcommon0,libgpiod-dev
+Depends: libconfig-dev, jq, libxkbcommon0, libgpiod-dev
 Description: Installs blikvm-$VERSION_DEB-alpha on the BliKVM
 EOF
 
-### libevent-2.1-7,libevent-pthreads-2.1-7,libnice10,libsrtp2-1,libopus0
+# preinst: stop service and ensure libxkbcommon.so symlink on target (arch-aware)
+cat > "$STAGE_DIR/DEBIAN/preinst" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
 
-### Create preinst script
-cat << 'EOF' > DEBIAN/preinst
-#!/bin/bash
-# Stop kvmd-web service before installation
 systemctl stop kvmd-web || true
-if [ ! -f /lib/aarch64-linux-gnu/libxkbcommon.so ]; then
-  ln -s /lib/aarch64-linux-gnu/libxkbcommon.so.0 /lib/aarch64-linux-gnu/libxkbcommon.so
+
+triplet_by_arch() {
+  local a
+  if command -v dpkg >/dev/null 2>&1; then a=$(dpkg --print-architecture); else a=""; fi
+  case "${a:-$(uname -m)}" in
+    amd64|x86_64) echo x86_64-linux-gnu ;;
+    arm64|aarch64) echo aarch64-linux-gnu ;;
+    armhf|armv7l|armv6l) echo arm-linux-gnueabihf ;;
+    *) echo "" ;;
+  esac
+}
+
+TRIPLET=$(triplet_by_arch)
+if [[ -n "$TRIPLET" ]]; then
+  LIBDIR="/lib/$TRIPLET"
+  if [[ -d "$LIBDIR" ]]; then
+    if [[ ! -f "$LIBDIR/libxkbcommon.so" && -f "$LIBDIR/libxkbcommon.so.0" ]]; then
+      ln -sfn "$LIBDIR/libxkbcommon.so.0" "$LIBDIR/libxkbcommon.so" || true
+    fi
+  fi
 fi
 EOF
 
-### Create postinst script
-cat << 'EOF' > DEBIAN/postinst
-#!/bin/bash
-# Start kvmd-web service after installation
+# postinst: enable service and board-specific tweak
+cat > "$STAGE_DIR/DEBIAN/postinst" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
 # Define board type names
 pi4b_board="Raspberry Pi 4 Model B"
 cm4b_board="Raspberry Pi Compute Module 4"
 h313_board="MangoPi Mcore"
 
-# Function to execute a command and return the output
-exec_cmd() {
-  output=$(eval "$1")
-  echo "$output"
-}
-
-# Function to get the board type
 get_board_type() {
-  if [[ $(exec_cmd "tr -d '\0' < /proc/device-tree/model") == *"$pi4b_board"* ]] ; then
-    type=$pi4b_board
-  elif [[ $(exec_cmd "tr -d '\0' < /proc/device-tree/model") == *"$cm4b_board"* ]] ; then
-    type=$cm4b_board
-  elif [[ $(exec_cmd "tr -d '\0' < /proc/device-tree/model") == *"$h313_board"* ]] ; then
-    type=$h313_board
+  local model
+  if [[ -r /proc/device-tree/model ]]; then
+    model=$(tr -d '\0' < /proc/device-tree/model)
   else
-    type=''
+    model=""
   fi
-  echo "$type"
+  case "$model" in
+    *"$pi4b_board"*) echo "$pi4b_board" ;;
+    *"$cm4b_board"*) echo "$cm4b_board" ;;
+    *"$h313_board"*) echo "$h313_board" ;;
+    *) echo "" ;;
+  esac
 }
 
 board_type=$(get_board_type)
 echo "Board type: $board_type"
 if [[ "$board_type" == "$cm4b_board" ]]; then
   CONFIG_FILE="/mnt/exec/release/lib/pi/janus_configs/janus.plugin.ustreamer.jcfg"
-  if [ -f "$CONFIG_FILE" ]; then
-    sed -i 's/device = "hw:1,0"/device = "hw:0,0"/g' "$CONFIG_FILE"
+  if [[ -f "$CONFIG_FILE" ]]; then
+    sed -i 's/device = "hw:1,0"/device = "hw:0,0"/g' "$CONFIG_FILE" || true
   fi
 fi
 
-chmod 777 -R /mnt/exec/release
-systemctl daemon-reload
+chmod 0777 -R /mnt/exec/release || true
+systemctl daemon-reload || true
 systemctl enable kvmd-web || true
-systemctl start kvmd-web || true
-echo "If you find that after upgrading, you cannot use KVM normally, in most cases, with the version upgrade, due to the continuous increase of functions, some functions require restarting KVM to take effect. If you find any abnormalities after upgrading, please restart KVM and test again"
-echo "kvmd-web service restarted"
+systemctl restart kvmd-web || systemctl start kvmd-web || true
+
+echo "If KVM behaves abnormally after upgrade, please reboot the device and test again."
 EOF
 
-### Ensure the scripts are executable
-chmod 755 DEBIAN/preinst DEBIAN/postinst
+chmod 0755 "$STAGE_DIR/DEBIAN/preinst" "$STAGE_DIR/DEBIAN/postinst"
 
-### add the files you want to add to the package
-tar --exclude='/mnt/exec/release/config/*' -cf - /mnt/exec/ | tar xf -
-tar cf - /usr/bin/blikvm | tar xf -
-tar cf - /lib/systemd/system/kvmd* | tar xf -
+# Build .deb and show contents
+OUT_DEB="$OUT_DIR/blikvm-${PKG_PREFIX}_${VERSION_DEB}_${DEB_ARCH}.deb"
+dpkg-deb -b "$STAGE_DIR" "$OUT_DEB"
+dpkg -c "$OUT_DEB"
 
-### create deb package using the contents of blikvm-$VERSION directory
-cd ..
-dpkg -b blikvm-$prefix
-
-# show contents of the deb package and make sure this is what you want
-dpkg -c blikvm-$prefix.deb
-
-# when ready, copy the blikvm-$VERSION.deb package to new blikvm v4 package, and run `dpkg -i blikvm-$VERSION.deb` to install it
-
-# verify that blikvm works properly by enabling/starting kvmd-web.service
-#systemctl enable --now kvmd-web
+echo "\nPackage built: $OUT_DEB"

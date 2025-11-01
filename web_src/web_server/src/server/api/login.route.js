@@ -21,12 +21,16 @@
 
 import { ApiCode, createApiObj } from '../../common/api.js';
 import fs from 'fs';
+import { writeJsonAtomic } from '../../common/atomic-file.js';
 import fsPromises from 'fs/promises';
 import bcrypt from 'bcrypt';
-import { CONFIG_PATH, JWT_SECRET, UTF8 } from '../../common/constants.js';
+import { CONFIG_PATH, JWT_SECRET, UTF8 , SERVER_VERSION, PRODUCT_VERSION} from '../../common/constants.js';
 import Logger from '../../log/logger.js';
 import jwt from 'jsonwebtoken';
 import TwoFactorAuth from '../../modules/two_factor_auth.js';
+import { HardwareType } from '../../common/enums.js';
+import {  getHardwareType } from '../../common/tool.js';
+
 
 const logger = new Logger();
 
@@ -43,6 +47,11 @@ function getUsers() {
   const { userManager } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
   const { Accounts } =  JSON.parse(fs.readFileSync(userManager.userFile, UTF8));
   return Accounts;
+}
+
+function getUserByName(name) {
+  const users = getUsers();
+  return users.find(u => u.username === name);
 }
 
 async function apiCreateAccount(req, res, next) {
@@ -93,10 +102,12 @@ async function apiCreateAccount(req, res, next) {
 function apiGetUserList(req, res, next) {
   try {
     const returnObject = createApiObj();
-    const users = getUsers();
-    const usernames = users.map(user => user.username);
+    
+    const { userManager } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    const userFile =  JSON.parse(fs.readFileSync(userManager.userFile, UTF8));
+
     returnObject.code = ApiCode.OK;
-    returnObject.data = usernames;
+    returnObject.data = userFile;
     res.json(returnObject);
   } catch (err) {
     next(err);
@@ -186,7 +197,8 @@ async function  apiLogin(req, res, next) {
     returnObject.code = ApiCode.OK;
     returnObject.data = {
       token,
-      username
+      username,
+      role: user.role, // 用户角色
     };
     res.json(returnObject);
   } catch (err) {
@@ -194,7 +206,7 @@ async function  apiLogin(req, res, next) {
   }
 }
 
-async function changeAccount(oriUsername, newUsername, newPassword) {
+async function changeAccount(targetUsername, newUsername, newPassword) {
   try {
     // Read the configuration file to get the user file path
     const configData = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
@@ -208,8 +220,8 @@ async function changeAccount(oriUsername, newUsername, newPassword) {
 
     // Iterate through all user arrays
     for (let account of users.Accounts) {
-      // Find the user object by oriUsername
-      if (account.username === oriUsername) {
+      // Find the user object by targetUsername
+      if (account.username === targetUsername) {
         // Update the username and password
         account.username = newUsername;
         account.password = await hashEncrypt(newPassword);
@@ -219,7 +231,7 @@ async function changeAccount(oriUsername, newUsername, newPassword) {
     }
 
     if (!userFound) {
-      logger.error(`Error: User ${oriUsername} not found`);
+      logger.error(`Error: User ${targetUsername} not found`);
       return false;
     }
 
@@ -238,9 +250,43 @@ async function changeAccount(oriUsername, newUsername, newPassword) {
 
 async function apiUpdateAccount(req, res, next) {
   try {
-    const { newUsername, newPassword } = req.body;
-    const oriUsername = req.headers.username;
-    const response = await changeAccount(oriUsername, newUsername, newPassword);
+    const ret = createApiObj();
+    const requesterName = req.auth?.username;
+    if (!requesterName) {
+      logger.error( `Unauthorized access attempt: ${requesterName}`);
+      ret.code = ApiCode.INVALID_CREDENTIALS;
+      ret.msg = 'Unauthorized';
+      return res.status(401).json(ret);
+    }
+    const requester = getUserByName(requesterName);
+    if (!requester) {
+      ret.code = ApiCode.INVALID_CREDENTIALS;
+      ret.msg = 'Unauthorized';
+      return res.status(401).json(ret);
+    }
+
+    const isAdmin = requester.role === 'admin';
+    if (!isAdmin) {
+      ret.code = ApiCode.INVALID_CREDENTIALS;
+      ret.msg = 'Permission denied, your account is not admin';
+      return res.status(403).json(ret);
+    }
+    const { targetUsername, newUsername, newPassword } = req.body;
+    
+    if (!newUsername && !newPassword) {
+      ret.code = ApiCode.INVALID_INPUT_PARAM;
+      ret.msg = 'Nothing to update, please provide new username or password';
+      return res.status(400).json(ret);
+    }
+    if (newUsername && newUsername !== targetUsername) {
+      if (getUserByName(newUsername)) {
+        ret.code = ApiCode.INVALID_INPUT_PARAM;
+        ret.msg = 'Username already exists';
+        return res.status(400).json(ret);
+      }
+    }
+
+    const response = await changeAccount(targetUsername, newUsername, newPassword);
     if (response) {
       res.json({
         code: ApiCode.OK,
@@ -260,10 +306,24 @@ async function apiUpdateAccount(req, res, next) {
 function apiGetAuthState(req, res, next) {
   try {
     const returnObject = createApiObj();
-    const { server } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
     returnObject.code = ApiCode.OK;
+    const hardwareType = getHardwareType();
+    let boardType = '';
+    if( hardwareType === HardwareType.MangoPi){
+      boardType ='mangopi';
+    }else if(hardwareType === HardwareType.PI4B ){
+      boardType = '4B';
+    }else if( hardwareType === HardwareType.CM4 ){
+      boardType = 'CM4';
+    }
     returnObject.data = {
-      auth: server.auth
+      productVersion: PRODUCT_VERSION,
+      serverVersion: SERVER_VERSION,
+      auth: config.server.auth,
+      boardType: boardType,
+      codeOfConductIsActive: config.codeOfConduct.isActive,
+      codeOfConductUrl: config.codeOfConduct.url
     };
     res.json(returnObject);
   } catch (err) {
@@ -271,13 +331,49 @@ function apiGetAuthState(req, res, next) {
   }
 } 
 
-function apiChangeAuthExpiration(req, res, next) {
+async function apiEnabledAuth(req, res, next) {
   try {
     const returnObject = createApiObj();
-    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-    const { expiration } = req.body;
-    config.server.authExpiration = expiration;
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify({ config }, null, 2), UTF8);
+    const { auth } = req.body;
+    if (auth === undefined) {
+      returnObject.msg = 'Auth parameter is required!';
+      returnObject.code = ApiCode.INVALID_INPUT_PARAM;
+      res.json(returnObject);
+      return;
+    }
+    if (typeof auth !== 'boolean') {
+      returnObject.msg = 'Auth must be a boolean value!';
+      returnObject.code = ApiCode.INVALID_INPUT_PARAM;
+      res.json(returnObject);
+      return;
+    }
+  const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    if(config.server.auth === auth) {
+      returnObject.msg = `Auth is already ${auth ? 'enabled' : 'disabled'}`;
+      returnObject.code = ApiCode.OK;
+      res.json(returnObject);
+      return;
+    }
+    returnObject.code = ApiCode.OK;
+  await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.server.auth = auth; });
+    returnObject.data = {
+      auth: config.server.auth
+    };
+    res.json(returnObject);
+    setTimeout(() => {
+      process.exit(0);
+    }, 1000); 
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function apiChangeAuthExpiration(req, res, next) {
+  try {
+    const returnObject = createApiObj();
+  const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+  const { expiration } = req.body;
+  await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.server.authExpiration = expiration; });
     returnObject.code = ApiCode.OK;
     returnObject.msg = 'Auth expiration changed successfully!';
     res.json(returnObject);
@@ -286,4 +382,4 @@ function apiChangeAuthExpiration(req, res, next) {
   }
 }
 
-export { apiLogin, apiUpdateAccount, apiGetUserList, apiCreateAccount, apiDeleteAccount, apiGetAuthState, apiChangeAuthExpiration };
+export { apiLogin, apiUpdateAccount, apiGetUserList, apiCreateAccount, apiDeleteAccount, apiGetAuthState, apiChangeAuthExpiration, apiEnabledAuth };

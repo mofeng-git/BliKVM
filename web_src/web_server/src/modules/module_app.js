@@ -63,11 +63,25 @@ class ModuleApp extends Module {
       });
 
       this._app.stdout.on('data', (data) => {
-        logger.trace(`${this._name} API stdout: ${data}`);
+        const text = data.toString();
+        if (/WARN|WARNING/.test(text)) {
+          logger.warn(`${this._name}: ${text.trim()}`);
+        } else if (/ERROR|ERR/.test(text)) {
+          logger.error(`${this._name}: ${text.trim()}`);
+        } else {
+          logger.info(`${this._name}: ${text.trim()}`);
+        } 
       });
 
       this._app.stderr.on('data', (data) => {
-        logger.trace(`${this._name} API stderr: ${data}`);
+        const text = data.toString();
+        if (/WARN|WARNING/.test(text)) {
+          logger.warn(`${this._name}: ${text.trim()}`);
+        } else if (/ERROR|ERR/.test(text)) {
+          logger.error(`${this._name}: ${text.trim()}`);
+        } else {
+          logger.info(`${this._name}: ${text.trim()}`);
+        } 
       });
 
       this._app.on('error', (err) => {
@@ -90,7 +104,7 @@ class ModuleApp extends Module {
             this.startService().catch((err) => {
               logger.error(`Failed to restart ${this._name} API: ${err.msg}`);
             });
-          }, 1000); 
+          }, 1000);
         }
         if (code === 1) {
           this._state = ModuleState.ERROR;
@@ -100,7 +114,7 @@ class ModuleApp extends Module {
           reject(result);
         }
       });
-      
+
       process.on('exit', () => {
         if (this._app) {
           this._app.kill('SIGTERM'); // 发送 SIGTERM 终止子进程

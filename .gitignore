@@ -10,3 +10,12 @@ blikvm-v1-v2-v3
 blikvm-v4
 blikvm-v1-v2-v3.deb
 blikvm-v4.deb
+
+web_src/web_client/dist
+web_src/web_client/node_modules
+web_src/web_client/package-lock.json
+web_src/web_client/.gitignore
+web_src/web_server/dist
+web_src/web_server/node_modules
+web_src/web_server/package-lock.json
+web_src/web_server/.gitignore

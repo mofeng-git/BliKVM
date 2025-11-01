@@ -22,8 +22,9 @@
 import fs from 'fs';
 import path from 'path';
 import { createApiObj, ApiCode } from '../../common/api.js';
+import { MSD_MOUNT_DIR } from '../../common/constants.js';
 
-const DOWNLOAD_BASE_DIR = path.resolve('/mnt/msd/user'); // 可根据实际项目调整
+const DOWNLOAD_BASE_DIR = path.resolve(MSD_MOUNT_DIR); // 可根据实际项目调整
 
 function apiDownloadFile(req, res, next) {
   try {
@@ -54,10 +55,14 @@ function apiDownloadFile(req, res, next) {
     }
 
     const stat = fs.statSync(filePath);
+
+    const safeName = path.basename(filePath); // 保留原始文件名
+    const encodedName = encodeURIComponent(safeName); // 转成 %E6%96%B0%E5%BB%BA...
+
     res.writeHead(200, {
       'Content-Type': 'application/octet-stream',
       'Content-Length': stat.size,
-      'Content-Disposition': `attachment; filename="${path.basename(filePath)}"`
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodedName}`
     });
 
     const stream = fs.createReadStream(filePath);

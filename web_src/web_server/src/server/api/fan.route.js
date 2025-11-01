@@ -19,17 +19,17 @@
 #                                                                            #
 *****************************************************************************/
 import fs from 'fs';
+import { writeJsonAtomic } from '../../common/atomic-file.js';
 
 import { createApiObj, ApiCode } from '../../common/api.js';
 import { CONFIG_PATH } from '../../common/constants.js';
 
-function apiSetTempThreshold(req, res, next) {
+async function apiSetTempThreshold(req, res, next) {
   try {
     const returnObject = createApiObj();
     const { tempThreshold } = req.body;
     const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-    config.fan.tempThreshold = tempThreshold;
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
+  await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.fan.tempThreshold = tempThreshold; });
     returnObject.msg = `Fan temperature threshold changed to ${tempThreshold}°C`;
     returnObject.code = ApiCode.OK;
     res.json(returnObject);

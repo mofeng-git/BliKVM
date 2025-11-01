@@ -29,7 +29,7 @@ import { createApiObj } from '../../common/api.js';
  * @param {Function} next - The next middleware function.
  * @private
  */
-function apiFunc(req, res, next) {
+function apiBinState(req, res, next) {
   try {
     const ret = createApiObj();
     const video = new Video();
@@ -42,4 +42,14 @@ function apiFunc(req, res, next) {
   }
 }
 
-export default apiFunc;
+function apiCheckToken(req, res, next) {
+  try {
+    const ret = createApiObj();
+    ret.msg = "token is valid";
+    res.json(ret);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export {apiBinState, apiCheckToken};

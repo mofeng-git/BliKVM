@@ -5,3 +5,7 @@ acap: {
     device = "hw:CARD=tc358743"
     tc358743 = "/dev/video0"
 }
+aplay: {
+	device = "plughw:UAC2Gadget,0"
+	check = "/var/blikvm/otg/uac2.usb0@meta.json"
+}

@@ -20,8 +20,6 @@
 *****************************************************************************/
 import fs from 'fs';
 import Logger from './log/logger.js';
-import { getHardwareType } from './common/tool.js';
-import { HardwareType } from './common/enums.js';
 import HttpServer from './server/server.js';
 import Video from './modules/video/video.js';
 import KVMDMain from './modules/kvmd/kvmd_main.js';
@@ -30,13 +28,18 @@ import Janus from './modules/kvmd/kvmd_janus.js';
 import HID from './modules/kvmd/kvmd_hid.js';
 import KVMSwitchFactory from './modules/kvmd/switch/kvmd_switch.js';
 import { CONFIG_PATH, UTF8, SWITCH_PATH } from './common/constants.js';
-import {NotificationType, Notification } from './modules/notification.js';
+import { Notify } from './modules/notification.js';
 import UserConfigUpdate from './modules/update/user_update.js';
 import AppConfigUpdate from './modules/update/app_update.js';
 import SwitchConfigUpdate from './modules/update/switch_update.js';
 import WOLConfigUpdate from './modules/update/wake_on_lane_update.js';
-import {InputEventListener, getFilteredEventDevices} from './server/kvmd_event_listenner.js';
+import ACLConfigUpdate from './modules/update/access_control_list_update.js';
+import ShortcutsConfigUpdate from './modules/update/shortcuts_update.js';
+import { startHIDPassthroughListening } from './server/kvmd_event_listenner.js';
 import Mouse from './server/mouse.js';
+import Keyboard from './server/keyboard.js';
+import { killProcessByName } from './common/kill.js';
+import { startCheck } from './modules/start_check.js';
 
 process.env.UV_THREADPOOL_SIZE = 8;
 
@@ -62,7 +65,17 @@ switchConfigUpdate.upgradeFile();
 const wolConfigUpdate = new WOLConfigUpdate();
 wolConfigUpdate.upgradeFile();
 
-const notification = new Notification();
+// update access_control_list.json
+const aclConfigUpdate = new ACLConfigUpdate();
+aclConfigUpdate.upgradeFile();
+
+// update shortcuts.json
+const shortcutsConfigUpdate = new ShortcutsConfigUpdate();
+shortcutsConfigUpdate.upgradeFile();
+
+startCheck(); // every start server to check
+
+// Notification singleton is managed internally; no instantiation needed.
 const logger = new Logger();
 
 
@@ -79,15 +92,19 @@ httpServer.startService().then((result) => {
   const atx = new ATX();
   setTimeout(() => {
     atx.startService();
+    const keyboard = new Keyboard();
+    keyboard.init();
     //just for make sure jiggler is running
     const mouse = new Mouse();
+    mouse.init();
   }, 5000); // 5000 ms delay start ATX service
-
-  startHIDLoop();
+  setTimeout(() => {
+    startHIDLoop();
+  }, 6000);
 })
 .finally(() => {
   logger.info("All services have been started.");
-  notification.addMessage(NotificationType.INFO, 'All services have been started.');
+  Notify.info('All services have been started.');
 });
 
 // function start switch
@@ -95,21 +112,27 @@ function startSwitch() {
   const switchObj = JSON.parse(fs.readFileSync(SWITCH_PATH, UTF8));
   if (switchObj.kvmSwitch.isActive === true) {
     const switchHandle = KVMSwitchFactory.getSwitchHandle(switchObj.kvmSwitch.activeSwitchId);
-    switchHandle.enableSwitch();
+    if (switchHandle !== null) {
+      switchHandle.enableSwitch();
+    }else {
+      switchObj.kvmSwitch.isActive = false;
+      switchObj.kvmSwitch.activeSwitchId = -1;
+      fs.writeFileSync(SWITCH_PATH, JSON.stringify(switchObj, null, 2), UTF8);
+      logger.error('Failed to start the KVM switch due to unknown switch type. The switch has been deactivated.');
+    }
   }
 }
 
 function startHid() {
-  const { hid,msd } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+  const { hid } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
   if (hid.enable === true) {
     const hidHandle = new HID();
-    const mouseMode = hid.mouseMode;
-    const msdEnable = msd.enable;
-    hidHandle.startService(mouseMode,msdEnable);
+    hidHandle.startService();
   }
 }
 
-function startJanus(){
+async function startJanus(){
+  await killProcessByName('janus', { fullMatch: false, termTimeout: 1000 });
   const janus = new Janus();
   janus.startService();
 }
@@ -119,9 +142,5 @@ function startHIDLoop() {
   if(hid.pass_through.enabled !== true){
     return;
   }
-  const eventDevices = getFilteredEventDevices();
-  eventDevices.forEach(device => {
-    const inputEventListener = new InputEventListener();
-    inputEventListener.open(`/dev/input/${device.event}`);
-  });
+  startHIDPassthroughListening();
 }

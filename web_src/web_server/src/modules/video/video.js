@@ -83,30 +83,44 @@ class Video extends ModuleApp {
           }
         })
         .catch(error => {
-          reject(`error: ${error}`); 
+          reject(`error: ${error}`);
         });
     });
   }
-  
+
   setVideoConfig(videoConfig) {
     const configPath = CONFIG_PATH;
     const config = JSON.parse(fs.readFileSync(configPath, UTF8));
-    config.video.fps = videoConfig.fps;
-    config.video.quality = videoConfig.quality;
-    config.video.kbps = videoConfig.kbps;
-    config.video.gop = videoConfig.gop;
-    this._param = [config.video.bin, config.video.port, config.video.fps, config.video.quality, config.video.kbps, config.video.gop,  config.video.resolution];
+    // Coerce to numbers and apply minimum constraints
+    const fps = Number(videoConfig.fps);
+    const qualityRaw = Number(videoConfig.quality);
+    const kbpsRaw = Number(videoConfig.kbps);
+    const gopRaw = Number(videoConfig.gop);
+
+    const quality = isNaN(qualityRaw) ? 10 : Math.max(10, qualityRaw);
+    const kbps = isNaN(kbpsRaw) ? 100 : (kbpsRaw < 100 ? 100 : kbpsRaw);
+
+    config.video.fps = isNaN(fps) ? config.video.fps : fps;
+    config.video.quality = quality;
+    config.video.kbps = kbps;
+    // GOP must be in [0, 60]
+    if (!isNaN(gopRaw)) {
+      const gopClamped = Math.max(0, Math.min(60, gopRaw));
+      config.video.gop = gopClamped;
+    }
+
+    this._param = [config.video.bin, config.video.port, config.video.fps, config.video.quality, config.video.kbps, config.video.gop, config.video.resolution];
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), UTF8);
 
   }
 
-  getSnapshotUrl(){
+  getSnapshotUrl() {
     return `http://127.0.0.1:${this._param[1]}/snapshot`;
   }
 
   async getSnapshotImage() {
     const url = `http://127.0.0.1:${this._param[1]}/snapshot`;
-  
+
     return new Promise((resolve, reject) => {
       http.get(url, (response) => {
         const chunks = [];

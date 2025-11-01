@@ -165,6 +165,59 @@ class AppConfigUpdate {
     return data;
   }
 
+  upgradeV6toV7(data){
+    if(data.atx.isActive === undefined ){
+      data.atx.isActive = true; // 默认启用ATX功能
+    }
+    if( data.codeOfConduct === undefined ){
+      data.codeOfConduct = {
+        isActive: true,
+        url: ''
+      };
+    }
+    data.version = 7;
+    return data;
+  }
+
+  upgradeV7toV8(data){
+    if(data.hid.pass_through.wheelReverse === undefined ){
+      data.hid.pass_through.wheelReverse = false; // 默认鼠标滚轮不反转
+    }
+
+    data.version = 8;
+    return data;
+  }
+
+  upgradeV8toV9(data){
+    if(data.hid.identity === undefined ){
+      data.hid.identity = {
+        idVendor: "0x1d6b",
+        idProduct: "0x0106",
+        manufacturer: "BliKVM",
+        product: "Multifunction USB Device"
+      };
+    }
+    if(data.deviceVersion === undefined ){
+      data.deviceVersion = "BliKVM";
+    }
+    if(data.server.mdnsEnabled === undefined ){
+      data.server.mdnsEnabled = true;
+    }
+    data.version = 9;
+    return data;
+  }
+
+  upgradeV9toV10(data){
+    if(data.mic === undefined ){
+      data.mic = {
+        isRegistered: false
+      };
+    }
+    data.version = 10;
+    return data;
+  }
+
+
   // 通用升级函数，检查当前版本并逐步升级
   upgradeData(data) {
     if (data.version === 1) {
@@ -187,6 +240,22 @@ class AppConfigUpdate {
       logger.info('Update from version 5 to version 6...');
       data = this.upgradeV5toV6(data);
     }
+    if( data.version === 6 ){
+      logger.info('Update from version 6 to version 7...');
+      data = this.upgradeV6toV7(data);
+    }
+    if( data.version === 7 ){
+      logger.info('Update from version 7 to version 8...');
+      data = this.upgradeV7toV8(data);
+    }
+    if( data.version === 8 ){ 
+      logger.info('Update from version 8 to version 9...');
+      data = this.upgradeV8toV9(data);
+    }
+    if( data.version === 9){
+      logger.info('Update from version 9 to version 10...');
+      data = this.upgradeV9toV10(data);
+    }
     return data;
   }
 
@@ -208,12 +277,13 @@ class AppConfigUpdate {
         fs.writeFileSync(this._filePath, JSON.stringify(this._defaultConfig, null, 2), UTF8);
         return;
       }
-
+      if (localData.version === this._defaultConfig.version) {
+        logger.info('User config app.json version is up to date');
+        return;
+      }
       const upgradedData = this.upgradeData(localData);
-
       fs.writeFileSync(this._filePath, JSON.stringify(upgradedData, null, 2), UTF8);
-
-      logger.info('app.json file successfully update!');
+      logger.info(`User config app.json upgraded to version ${upgradedData.version}`);
 
     } catch (error) {
       logger.error(`${error}`);

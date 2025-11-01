@@ -1,4 +1,3 @@
-
 /*****************************************************************************
 #                                                                            #
 #    blikvm                                                                  #
@@ -19,46 +18,60 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.  #
 #                                                                            #
 *****************************************************************************/
+
 /**
  * router/index.ts
  *
  * Automatic routes for `./src/pages/*.vue`
  */
 
-// Composables
-import { createRouter, createWebHistory } from 'vue-router/auto'
-import { setupLayouts } from 'virtual:generated-layouts'
-import { routes } from 'vue-router/auto-routes'
+import { createRouter, createWebHistory } from 'vue-router/auto';
+import { setupLayouts } from 'virtual:generated-layouts';
+import { routes } from 'vue-router/auto-routes';
 
-
+// Modify the existing routes if needed
 for (const route of routes) {
   if (route.name === '/main') {
     console.log(route);
     route.meta = route.meta || {};
+    // Uncomment this line if you want to require authentication for the main route
     // route.meta.requiresAuth = true;
   }
 }
 
+// Create the router instance
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  extendRoutes: setupLayouts,
-  routes,
-})
+  routes: [
+    ...setupLayouts(routes), // Spread the existing routes
+    {
+      path: '/matrix',
+      name: 'Matrix',
+      component: () => import('@/pages/Matrix.vue'),
+      // meta: { requiresAuth: true }
+    },
+  ],
+});
 
+// Global navigation guard for authentication
 router.beforeEach((to, from, next) => {
   console.log('to.matched:', to.matched);
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  const token = localStorage.getItem('token');
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const token = localStorage.getItem('token'); // TODO get from store
+
+  console.log('token', token);
+  console.log('Navigating to:', to.path);
 
   if (requiresAuth && !token) {
-    next('/'); 
-  } else if (token) {
-    next();
-    console.log("token valid")
+    next('/'); // Redirect to home if authentication is required and no token is present
   } else {
-    console.log("don't need auth")
-    next();
+    if (token) {
+      console.log('token valid');
+    } else {
+      console.log("don't need auth");
+    }
+    next(); // Proceed to the route
   }
 });
 
-export default router
+export default router;

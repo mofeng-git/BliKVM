@@ -46,26 +46,28 @@ function apiVideoControl(req, res, next) {
       video
         .startService()
         .then((result) => {
-          ret.data.state = video.state;
+          ret.data.state = video.getstate();
+          ret.msg = 'video service started successfully';
           res.json(ret);
         })
         .catch((result) => {
           ret.code = ApiCode.INTERNAL_SERVER_ERROR;
           ret.msg = result.msg;
-          ret.data.state = video.state;
+          ret.data.state = video.getstate();
           res.json(ret);
         });
     } else if (action === 'stop') {
       video
         .closeService()
         .then((result) => {
-          ret.data.state = video.state;
+          ret.data.state = video.getstate();
+          ret.msg = 'video service stopped';
           res.json(ret);
         })
         .catch((result) => {
           ret.code = ApiCode.INTERNAL_SERVER_ERROR;
           ret.msg = result.msg;
-          ret.data.state = video.state;
+          ret.data.state = video.getstate();
           res.json(ret);
         });
     } else {
@@ -92,35 +94,35 @@ function apiResolutionChange(req, res, next) {
   const video = new Video();
   video.setResolution(resolution);
 
-  if (video.state === ModuleState.RUNNING) {
+  if (video.getstate() === ModuleState.RUNNING) {
     video
       .closeService() 
       .then(() => {
         return video.startService(); 
       })
       .then(() => {
-        ret.code = ApiCode.SUCCESS;
+        ret.code = ApiCode.OK;
         ret.msg = 'Resolution changed and service restarted successfully';
         res.json(ret);
       })
       .catch((result) => {
         ret.code = ApiCode.INTERNAL_SERVER_ERROR;
         ret.msg = result.msg;
-        ret.data.state = video.state;
+        ret.data.state = video.getstate();
         res.json(ret);
       });
   } else {
     video
       .startService()
       .then(() => {
-        ret.code = ApiCode.SUCCESS;
+        ret.code = ApiCode.OK;
         ret.msg = 'Service started with new resolution successfully';
         res.json(ret);
       })
       .catch((result) => {
         ret.code = ApiCode.INTERNAL_SERVER_ERROR;
         ret.msg = result.msg;
-        ret.data.state = video.state;
+        ret.data.state = video.getstate();
         res.json(ret);
       });
   }
@@ -171,11 +173,19 @@ function apiGetVideoState(req, res, next) {
 async function wsGetVideoState() {
   try {
     const video = new Video();
-    if (video.state !== ModuleState.RUNNING) {
-      return null;
+    if (video.getstate() !== ModuleState.RUNNING) {
+      const ret_stop = {
+        isActive: false,
+        width: 0,
+        height: 0,
+        capturedFps: 0,
+        queuedFps: 0
+      }
+      return ret_stop;
     }
     const response = await video.getVideoState();
     const ret = {
+      isActive: true,
       width: response.result.source.resolution.width,
       height: response.result.source.resolution.height,
       capturedFps: response.result.source.captured_fps,
@@ -252,12 +262,22 @@ function parseEdidOutput(output) {
   lines.forEach(line => {
     const [key, value] = line.split(':').map(part => part.trim());
     if (key && value) {
-      result[key.toLowerCase().replace(/\s+/g, '_')] = value;
+      const normalizedKey = key.toLowerCase().replace(/\s+/g, '_');
+      let finalValue = value;
+
+      // 只保留括号里的内容，例如将 "0x8888 (34952)" 转为 "34952"
+      const match = value.match(/\((\d+)\)/);
+      if ( (normalizedKey === 'product_id' || normalizedKey === 'serial_number' )  && match) {
+        finalValue = match[1]; // 提取括号内的数字字符串
+      }
+
+      result[normalizedKey] = finalValue;
     }
   });
 
   return result;
 }
+
 
 function apiEdidInfo(req, res, next) {
   try {

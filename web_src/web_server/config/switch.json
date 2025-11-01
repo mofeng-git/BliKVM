@@ -1,8 +1,8 @@
 {
   "version": 1,
   "kvmSwitch": {
-    "isActive": false,
-    "activeSwitchId": -1,
+    "isActive": true,
+    "activeSwitchId": 1,
     "items": [
       {
         "id": 1,
@@ -10,11 +10,11 @@
         "subtitle": "multiport 4-channel KVM switch",
         "channelCount": 4,
         "deviceFile": "/dev/ttyUSB0",
-        "activeChannel": "None",
+        "activeChannel": 1,
         "channels": [
           {
             "name": 1,
-            "override": ""
+            "override": "test01"
           },
           {
             "name": 2,
@@ -26,7 +26,7 @@
           },
           {
             "name": 4,
-            "override": ""
+            "override": "test04"
           }
         ]
       },

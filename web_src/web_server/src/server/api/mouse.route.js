@@ -25,42 +25,7 @@ import Mouse from '../mouse.js';
 
 const logger = new Logger();
 
-async function apiMouseJiggler(req, res, next) {
-  try {
-    const returnObject = createApiObj();
-    const action = req.query.action;
-    const mouse = new Mouse();
-    if(action === 'true') {
-        mouse.startJiggler();
-    }else if(action === 'false') {
-        mouse.stopJiggler();
-    }else{
-        returnObject.code = ApiCode.INVALID_INPUT_PARAM;
-        returnObject.msg = `mouse jiggler action:${action} error`;
-        res.json(returnObject);
-        return;
-    }
-    returnObject.msg = `mouse jiggler ${action} success`;
-    res.json(returnObject);
-  } catch (error) {
-    next(error);
-  } 
-}
-
-function apiChangeJigglerTime(req, res, next) {
-  try {
-    const returnObject = createApiObj();
-    const {interval} = req.body;
-    const mouse = new Mouse();
-    mouse.updateJigglerInterval(interval);
-    returnObject.msg = `mouse jiggler time changed to ${interval} success`;
-    res.json(returnObject);
-  } catch (error) {
-    next(error);
-  } 
-}
-
-function apiV2MouseJiggler(req, res, next) {
+function apiMouseJiggler(req, res, next) {
   try {
     const returnObject = createApiObj();
     const {interval} = req.body;
@@ -72,6 +37,7 @@ function apiV2MouseJiggler(req, res, next) {
         mouse.updateJigglerInterval(interval);
         if(!mouse.getJigglerStatus()) {
             mouse.startJiggler();
+            logger.info(`start mouse jiggler: ${interval}`);
         }
     }
     returnObject.msg = `mouse jiggler time changed to ${interval} success`;
@@ -95,4 +61,4 @@ function apiMouseEvent(req, res, next) {
 } 
 
 
-export { apiMouseJiggler,apiChangeJigglerTime,  apiV2MouseJiggler, apiMouseEvent};
+export { apiMouseJiggler, apiMouseEvent};

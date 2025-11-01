@@ -2,6 +2,7 @@ import client from 'prom-client';
 import basicAuth from 'basic-auth';
 import si from 'systeminformation';
 import fs from 'fs';
+import { writeJsonAtomic } from '../common/atomic-file.js';
 
 import { CONFIG_PATH, UTF8 } from '../common/constants.js';
 import { getSystemInfo } from '../common/tool.js'; // 引入 getSystemInfo 函数
@@ -84,9 +85,9 @@ class PrometheusMetrics {
       this._intervalId = setInterval(() => {
         this._updateMetrics();
       }, this._interval);
-      const configObj = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-      configObj.prometheus.enabled = true;
-      fs.writeFileSync(CONFIG_PATH, JSON.stringify(configObj, null, 2), UTF8);
+  const configObj = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+  configObj.prometheus.enabled = true;
+  writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.prometheus.enabled = true; });
       this._enable = true;
     }
   }
@@ -95,10 +96,10 @@ class PrometheusMetrics {
     if (this._enable) {
       clearInterval(this._intervalId);
       this._intervalId = null;
-      const configObj = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-      configObj.prometheus.enabled = true;
-      fs.writeFileSync(CONFIG_PATH, JSON.stringify(configObj, null, 2), UTF8);
-      this._enabled = false;
+  const configObj = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+  configObj.prometheus.enabled = false;
+  writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.prometheus.enabled = false; });
+      this._enable = false;
     }
   }
 
@@ -110,9 +111,9 @@ class PrometheusMetrics {
         this._updateMetrics();
       }, this._interval);
 
-      const configObj = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-      configObj.prometheus.interval = interval;
-      fs.writeFileSync(CONFIG_PATH, JSON.stringify(configObj, null, 2));
+  const configObj = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+  configObj.prometheus.interval = interval;
+  writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.prometheus.interval = interval; });
     }
   }
 

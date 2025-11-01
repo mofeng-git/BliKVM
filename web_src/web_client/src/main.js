@@ -1,4 +1,3 @@
-
 /*****************************************************************************
 #                                                                            #
 #    blikvm                                                                  #
@@ -22,40 +21,61 @@
 /**
  * main.js
  *
- * Bootstraps Vuetify and other plugins then mounts the App`
+ * Bootstraps Vuetify and other plugins then mounts the App
  */
 
 // Plugins
-import { registerPlugins } from '@/plugins'
-import router from '@/router'
-import http from '@/utils/http.js';
-
-// Components
-import App from './App.vue'
-
-// Composables
-import { createApp } from 'vue'
-
+import { createApp } from 'vue';
+import App from './App.vue';
 import { useAppStore } from '@/stores/stores';
+import { storeToRefs } from 'pinia';
+import { registerPlugins } from '@/plugins';
+import { updateAbilityForRole } from '@/plugins';
+import http from '@/utils/http.js';
+import router from '@/router';
 
 const app = createApp(App);
 registerPlugins(app);
-const store = useAppStore();
 
-async function initializeApp() {
+(async () => {
+  // Ensure the store is initialized before subscribing to changes
+  const store = useAppStore();
+
+  // const { account, security } = storeToRefs(store);
+  // console.log(account.value.userRole);
+
+  // if (account.value.userRole) {
+  //   updateAbilityForRole(account.value.userRole); // Only call this if the role is valid
+  // } else {
+  //   console.error("User role is undefined or invalid");
+  // }
+
   try {
     const response = await http.get('/auth/state');
     if (response.data.version !== null) {
-      store.version = response.data.version;
+      store.productVersion = response.data.data.productVersion;
+      store.serverVersion = response.data.data.serverVersion;
+    }
+    if (response.data.data.boardType) {
+      store.devices.board.type = response.data.data.boardType;
+    }
+    if (response.data.data.codeOfConductIsActive) {
+      store.misc.showCoc = response.data.data.codeOfConductIsActive;
+      store.misc.cocUrl = response.data.data.codeOfConductUrl;
     }
     if (response.data.data.auth === false) {
-      router.push('/main');
+      store.security.isAuthEnabled = false;
+      await store.initializeApp();
+      router.push({ name: 'Matrix' }).catch((error) => console.log(error));
     }
   } catch (error) {
     console.error('Failed to initialize app:', error);
   }
 
+  function setVh() {
+    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+  }
+  window.addEventListener('resize', setVh);
+  setVh();
   app.mount('#app');
-}
-
-initializeApp();
+})();

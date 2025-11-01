@@ -24,17 +24,16 @@ import { Server, EVENTS } from '@tus/server';
 import { FileStore } from '@tus/file-store';
 import fs from 'fs';
 import path from 'path';
-import { CONFIG_PATH, UTF8 } from '../common/constants.js';
+import { CONFIG_PATH, UTF8,MSD_MOUNT_DIR } from '../common/constants.js';
 import Logger from '../log/logger.js';
 
 const logger = new Logger();
 
 function createTusServer() {
-    const { msd } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
     const server = new Server({
-        path: `/tus${msd.isoFilePath}`,
+        path: `/tus${MSD_MOUNT_DIR}`,
         respectForwardedHeaders: true,
-        datastore: new FileStore({ directory: msd.isoFilePath }),
+        datastore: new FileStore({ directory: MSD_MOUNT_DIR }),
         namingFunction(req, metadata) {
             //console.log('namingFunction:', metadata.filename);
             // return `${metadata.filename}`;
@@ -44,13 +43,13 @@ function createTusServer() {
     });
 
     server.on(EVENTS.POST_FINISH, (req, res, upload) => {
-        const metadataFilePath = path.join(msd.isoFilePath, `${upload.id}.json`);
+        const metadataFilePath = path.join(MSD_MOUNT_DIR, `${upload.id}.json`);
         const info = JSON.parse(fs.readFileSync(metadataFilePath, UTF8));
         const originalFilename = info.metadata.filename;
 
         // 获取上传文件的路径和目标路径
-        const uploadedFilePath = path.join(msd.isoFilePath, upload.id);
-        const renamedFilePath = path.join(msd.isoFilePath, originalFilename);
+        const uploadedFilePath = path.join(MSD_MOUNT_DIR, upload.id);
+        const renamedFilePath = path.join(MSD_MOUNT_DIR, originalFilename);
 
         // 重命名文件
         fs.rename(uploadedFilePath, renamedFilePath, (err) => {

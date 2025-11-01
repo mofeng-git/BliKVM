@@ -1,0 +1,32 @@
+{
+  "roles": [
+    {
+      "role": "admin",
+      "description": "full access"
+    },
+    {
+      "role": "readonly",
+      "description": "read-only access"
+    }
+  ],
+  "accounts": [
+    {
+      "role": "admin",
+      "user": "admin",
+      "password": "$2b$10$FSPa6hjJOmSiG6OCJ6wpeeP/s4n41tGnMi6zKB1W5Jr7t6dm7P0Rq",
+      "isActive": true
+    },
+    {
+      "role": "readonly",
+      "user": "blikvm",
+      "password": "$2b$10$hashed_password_here",
+      "isActive": false
+    },
+    {
+      "role": "admin",
+      "user": "shang",
+      "password": "bbbb",
+      "isActive": true
+    }
+  ]
+}

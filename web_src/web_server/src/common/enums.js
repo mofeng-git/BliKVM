@@ -39,7 +39,11 @@ const HardwareType = {
   /**
    * MangoPi hardware.
    */
-  MangoPi: 3
+  MangoPi: 3,
+  /**
+   * BliKVM hardware.
+   */
+  BliKVMV5CM4: 4
 };
 
 const ModuleState = {

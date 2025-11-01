@@ -25,6 +25,7 @@ import { CONFIG_PATH, UTF8 } from '../common/constants.js';
 import { constants } from 'fs';
 import Queue from '../common/queue.js';
 import { isDeviceFile } from '../common/tool.js';
+import { Notify, NotificationModule } from '../modules/notification.js';
 
 const logger = new Logger();
 
@@ -38,6 +39,10 @@ class HIDDevice{
     isClosing = false;
     _fd = null;
     _timeDiff = 5; //uint: ms
+    _type = "";
+    _NumLockLed = false;
+    _CapsLockLed = false;
+    _ScrollLockLed = false;
 
     writeToQueue(data) {
         this.eventQueue.enqueue(data);
@@ -66,6 +71,40 @@ class HIDDevice{
         }
     }
 
+
+    startListening() {
+        const buf = Buffer.alloc(8); // 报告长度，足够容纳你的 8 位 Output Report
+    
+        const readLoop = () => { // 使用箭头函数
+            if (this.isClosing) {
+                return;
+            }
+            
+            if (this._fd === null) {
+                logger.warn(`File descriptor is null, stopping read loop for ${this._devicePath}`);
+                return; 
+            }
+
+
+            fs.read(this._fd, buf, 0, buf.length, null, (err, bytesRead, buffer) => {
+                if (err && err.code !== 'EAGAIN' ) {
+                    logger.error(`Error reading from ${this._devicePath}: ${err}`);
+                }
+    
+                if (bytesRead > 0) {
+                    const ledStatus = buffer[0] & 0x07; // 取低三位
+                    this._NumLockLed = (ledStatus & 0x01) !== 0;
+                    this._CapsLockLed = ((ledStatus >> 1) & 0x01) !== 0;
+                    this._ScrollLockLed = ((ledStatus >> 2) & 0x01) !== 0;
+                    logger.info(`LED: NumLock=${this._NumLockLed}, CapsLock=${this._CapsLockLed}, ScrollLock=${this._ScrollLockLed}`);
+                }
+                setTimeout(readLoop, 1000); // 继续读取
+            });
+        };
+    
+        readLoop();
+    }
+
     open() {
         return new Promise((resolve, reject) => {
             if (this._fd !== null) {
@@ -77,7 +116,7 @@ class HIDDevice{
                 return;
             }
             logger.info(`Opening file ${this._devicePath}`);
-            fs.open(this._devicePath, constants.O_WRONLY | constants.O_NONBLOCK, (err, fd) => {
+            fs.open(this._devicePath, constants.O_RDWR | constants.O_NONBLOCK, (err, fd) => {
                 if (err) {
                     logger.error(`Error opening file: ${err}`);
                     this._onlineStatus = false;
@@ -85,6 +124,9 @@ class HIDDevice{
                     return;
                 }
                 this._fd = fd;
+                if( this._type === 'keyboard') {
+                    this.startListening();
+                }
                 logger.info(`File ${this._devicePath} opened fd ${this._fd}`);
                 resolve(fd);  // Resolve promise with the file descriptor if file opens successfully
             });
@@ -133,7 +175,9 @@ class HIDDevice{
             fs.write(this._fd, dataBuffer, (err, written) => {
                 if (err) {
                     this._onlineStatus = false;
-                    logger.warn(`Error writing to ${this._devicePath} data:${data} ${err}`);
+                    const strWarning = `Error writing to ${this._devicePath} data:${data} ${err}`;
+                    logger.warn(strWarning);
+                    Notify.warning(strWarning, NotificationModule.HID);
                 } else {
                     this._onlineStatus = true;
                 }

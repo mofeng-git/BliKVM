@@ -21,6 +21,7 @@
 
 import { createApiObj, ApiCode } from '../../common/api.js';
 import fs from 'fs';
+import { writeJsonAtomic } from '../../common/atomic-file.js';
 import WakeOnLan from '../../modules/wol.js';
 import { UTF8, WOL_PATH } from '../../common/constants.js';
 
@@ -84,7 +85,7 @@ function apiGetWakeOnLanList(req, res, next) {
   }
 }
 
-function apiAddWakeOnLan(req, res, next) {
+async function apiAddWakeOnLan(req, res, next) {
   try {
     const ret = createApiObj();
     const { name, mac } = req.body;
@@ -99,18 +100,18 @@ function apiAddWakeOnLan(req, res, next) {
       return res.status(400).json(ret);
     }
 
-    const wolObj = JSON.parse(fs.readFileSync(WOL_PATH, UTF8));
-    wolObj.items.push(req.body);
-    fs.writeFileSync(WOL_PATH, JSON.stringify(wolObj, null, 2), UTF8);
+  const wolObj = JSON.parse(fs.readFileSync(WOL_PATH, UTF8));
+  wolObj.items.push(req.body);
+  await writeJsonAtomic(WOL_PATH, wolObj);
     ret.msg = 'Add WOL item success';
-    ret.data = req.body;
+    ret.data = wolObj.items;
     res.json(ret);
   } catch (err) {
     next(err);
   }
 }
 
-function apiDeleteWakeOnLan(req, res, next) {
+async function apiDeleteWakeOnLan(req, res, next) {
   try {
     const ret = createApiObj();
     const wolObj = JSON.parse(fs.readFileSync(WOL_PATH, UTF8));
@@ -121,8 +122,9 @@ function apiDeleteWakeOnLan(req, res, next) {
       ret.code = ApiCode.INVALID_INPUT_PARAM;
       return res.status(404).json(ret);
     }
-    wolObj.items.splice(index, 1);
-    fs.writeFileSync(WOL_PATH, JSON.stringify(wolObj, null, 2), UTF8);
+  wolObj.items.splice(index, 1);
+  await writeJsonAtomic(WOL_PATH, wolObj);
+    ret.data = wolObj.items;
     ret.msg = `Delete WOL ${mac} item success`;
     res.json(ret);
 

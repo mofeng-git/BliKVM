@@ -1,4 +1,3 @@
-
 /*****************************************************************************
 #                                                                            #
 #    blikvm                                                                  #
@@ -145,159 +144,309 @@
  */
 
 export class RateLimitedMouse {
+  static instance = null;
+  static isAbsoluteMode = true;
+  static sensitivity = 1.0;
+  static wheelDirection = 1;
 
-    static isAbsoluteMode = true;
-    static sensitivity = 1.0;
-    /**
-     * @param {number} msBetweenEvents Number of milliseconds to
-     * wait between sending low-priority mouse events to the backend.
-     * @param {function(Object)} sendEventFn Function that sends a parsed mouse
-     * event to the backend server.
-     */
-    constructor(msBetweenEvents, sendEventFn, mode = true) {
-        this._msBetweenEvents = msBetweenEvents;
-        this._sendEventFn = sendEventFn;
-        this._queuedEvent = null;
-        this._eventTimer = null;
-        RateLimitedMouse.isAbsoluteMode = mode;
+  static getInstance(msBetweenEvents, sendEventFn, mode = 'absolute') {
+    if (!RateLimitedMouse.instance) {
+      RateLimitedMouse.instance = new RateLimitedMouse(msBetweenEvents, sendEventFn, mode);
     }
+    return RateLimitedMouse.instance;
+  }
 
-    onMouseDown(jsMouseEvt) {
-        this._processHighPriorityEvent(this._parseMouseEvent(jsMouseEvt));
+  /**
+   * @param {number} msBetweenEvents Number of milliseconds to
+   * wait between sending low-priority mouse events to the backend.
+   * @param {function(Object)} sendEventFn Function that sends a parsed mouse
+   * event to the backend server.
+   */
+  // constructor(msBetweenEvents, sendEventFn, mode = true) {
+  constructor(msBetweenEvents, sendEventFn, mode = 'absolute') {
+    if (RateLimitedMouse.instance) {
+      return RateLimitedMouse.instance;
     }
+    this._msBetweenEvents = msBetweenEvents;
+    this._sendEventFn = sendEventFn;
+    this._queuedEvent = null;
+    this._eventTimer = null;
+    this._lastTouchPos = null;
+    this._lastTouchEvent = null;
+    this._touchLeftHold = false;
+    this._touchMidHold = false;
+    this._touchRightHold = false;
+    RateLimitedMouse.mouseMode = mode;
+    RateLimitedMouse.instance = this;
+  }
 
-    onMouseUp(jsMouseEvt) {
-        this._processHighPriorityEvent(this._parseMouseEvent(jsMouseEvt));
-    }
+  onMouseDown(jsMouseEvt) {
+    this._lastTouchEvent = this._parseMouseEvent(jsMouseEvt);
+    this._processHighPriorityEvent(this._lastTouchEvent);
+  }
 
-    onMouseMove(jsMouseEvt) {
-        this._processLowPriorityEvent(this._parseMouseEvent(jsMouseEvt));
-    }
+  onMouseUp(jsMouseEvt) {
+    this._lastTouchEvent = this._parseMouseEvent(jsMouseEvt);
+    this._processHighPriorityEvent(this._lastTouchEvent);
+  }
 
-    onWheel(jsMouseEvt) {
-        this._processLowPriorityEvent(this._parseMouseEvent(jsMouseEvt));
-    }
+  onMouseMove(jsMouseEvt) {
+    this._lastTouchEvent = this._parseMouseEvent(jsMouseEvt);
+    this._processLowPriorityEvent(this._lastTouchEvent);
+  }
 
-    setTimeoutWindow(msBetweenEvents) {
-        this._msBetweenEvents = msBetweenEvents;
-        this._restartTimeoutWindow();
-    }
+  _getHoldButtonsMask() {
+    let mask = 0;
+    if (this._touchLeftHold) mask |= 1; // 左键 bit0
+    if (this._touchRightHold) mask |= 2; // 右键 bit1
+    if (this._touchMidHold) mask |= 4; // 中键 bit2
+    return mask;
+  }
 
-    static setMode(mode) {
-        RateLimitedMouse.isAbsoluteMode = mode;
-    }
+  onTouchMove(e) {
+    const touch = e.touches[0];
+    const pos = this._getTouchPosition(e, 0); // 相对元素的坐标
+    if (!pos) return;
 
-    static setSensitivity(value){
-        RateLimitedMouse.sensitivity = value;
-    }
+    let buttonsValue = this._getHoldButtonsMask();
 
-    _processHighPriorityEvent(mouseInfo) {
-        // Cancel pending event, if one exists.
-        this._queuedEvent = null;
+    // 构造一个和 MouseEvent 类似的对象
+    let fakeEvt = {
+      target: touch.target,
+      buttons: buttonsValue, // 模拟鼠标左键按下
+      deltaX: 0,
+      deltaY: 0,
+    };
 
-        this._emitEvent(mouseInfo);
-    }
-
-    _processLowPriorityEvent(mouseInfo) {
-        if (this._isInTimeoutWindow() && RateLimitedMouse.isAbsoluteMode === true) {
-            this._queuedEvent = mouseInfo;
-        } else {
-            this._emitEvent(mouseInfo);
-        }
-    }
-
-    /**
-     * Emit a mouse event immediately and start a timeout window to gate the next
-     * mouse event to send.
-     *
-     * @param {Object} mouseInfo Mouse information object, parsed from
-     * parseMouseEvent.
-     */
-    _emitEvent(mouseInfo) {
-        this._sendEventFn(mouseInfo);
-        this._startTimeoutWindow();
-    }
-
-    _startTimeoutWindow() {
-        // Clear any existing timeout window, if one is set.
-        clearTimeout(this._eventTimer); // This is a no-op if _eventTimer is null.
-        this._eventTimer = null;
-
-        // Start the timeout window to gate subsequent low-priority events.
-        this._eventTimer = setTimeout(() => {
-            this._eventTimer = null;
-            if (this._queuedEvent) {
-                this._emitEvent(this._queuedEvent);
-            }
-            this._queuedEvent = null;
-        }, this._msBetweenEvents);
-    }
-
-    _restartTimeoutWindow() {
-        if (this._eventTimer !== null) {
-            clearTimeout(this._eventTimer);
-            this._eventTimer = setTimeout(() => {
-                this._eventTimer = null;
-                if (this._queuedEvent) {
-                    this._emitEvent(this._queuedEvent);
-                }
-                this._queuedEvent = null;
-            }, this._msBetweenEvents);
-        }
-    }
-
-    _isInTimeoutWindow() {
-        return this._eventTimer !== null;
-    }
-
-    /**
- * Parses a standard JavaScript mouse event into a TinyPilot-specific object
- * containing information about the mouse event.
- *
- * @param {Object} evt A standard JavaScript mouse event, such as mousedown or
- * mousemove.
- * @returns {Object} The mouse event data in TinyPilot-specific format with the
- * following properties:
- * - buttons (number) A bitmask representing which mouse buttons are pressed,
- *   in the same format as the buttons property from the native JavaScript mouse
- *   events.
- * - relativeX (number) A value between 0.0 and 1.0 representing the mouse's
- *   relative x-offset from the left edge of the screen.
- * - relativeY (number) A value between 0.0 and 1.0 representing the mouse's
- *   relative y-offset from the top edge of the screen.
- * - verticalWheelDelta (number) A -1, 0, or 1 representing movement of the
- *   mouse's vertical scroll wheel.
- * - horizontalWheelDelta (number) A -1, 0, or 1 representing movement of the
- *   mouse's horizontal scroll wheel.
- */
-    _parseMouseEvent(evt) {
     if (RateLimitedMouse.isAbsoluteMode === false) {
-        return {
-            isAbsoluteMode: false,
-            buttons: evt.buttons,
-            relativeX: evt.movementX,
-            relativeY: evt.movementY,
-            verticalWheelDelta: normalizeWheelDelta(evt.deltaY),
-            horizontalWheelDelta: normalizeWheelDelta(evt.deltaX),
-            sensitivity: RateLimitedMouse.sensitivity,
-        };
+      // 相对模式：计算 movementX / movementY
+      if (this._lastTouchPos) {
+        fakeEvt.movementX = pos.x - this._lastTouchPos.x;
+        fakeEvt.movementY = pos.y - this._lastTouchPos.y;
+      } else {
+        fakeEvt.movementX = 0;
+        fakeEvt.movementY = 0;
+      }
+      this._lastTouchPos = pos;
     } else {
-        const boundingRect = evt.target.getBoundingClientRect();
-        const cursorX = Math.max(0, evt.clientX - boundingRect.left);
-        const cursorY = Math.max(0, evt.clientY - boundingRect.top);
-        const width = boundingRect.right - boundingRect.left;
-        const height = boundingRect.bottom - boundingRect.top;
-
-        return {
-            isAbsoluteMode: true,
-            buttons: evt.buttons,
-            relativeX: Math.min(1.0, Math.max(0.0, cursorX / width)),
-            relativeY: Math.min(1.0, Math.max(0.0, cursorY / height)),
-            verticalWheelDelta: normalizeWheelDelta(evt.deltaY),
-            horizontalWheelDelta: normalizeWheelDelta(evt.deltaX),
-        };
+      // 绝对模式：直接用 clientX / clientY
+      // 这里用相对于视口的坐标（方便 _parseMouseEvent 算归一化）
+      const rect = touch.target.getBoundingClientRect();
+      fakeEvt.clientX = touch.clientX;
+      fakeEvt.clientY = touch.clientY;
     }
-}
+    this._lastTouchEvent = this._parseMouseEvent(fakeEvt);
+    // 处理伪造的鼠标事件
+    this._processLowPriorityEvent(this._lastTouchEvent);
+  }
+
+  _onSendTouchHoldStart() {
+    if (!this._lastTouchEvent) return;
+
+    // 复制事件
+    const evt = { ...this._lastTouchEvent };
+
+    // 根据状态组合 buttons
+    evt.buttons = this._getHoldButtonsMask();
+    evt.deltaY = 0;
+
+    this._processHighPriorityEvent(evt);
+  }
+
+  _onSendTouchHoldEnd() {
+    if (!this._lastTouchEvent) return;
+
+    // 复制事件
+    const evt = { ...this._lastTouchEvent };
+
+    // 根据状态组合 buttons
+    evt.buttons = this._getHoldButtonsMask();
+    evt.deltaY = 0;
+
+    this._processHighPriorityEvent(evt);
+  }
+
+  onTouchHoldStart(button) {
+    if (button === 'left') {
+      this._touchLeftHold = true;
+    } else if (button === 'mid') {
+      this._touchMidHold = true;
+    } else if (button === 'right') {
+      this._touchRightHold = true;
+    }
+    this._onSendTouchHoldStart(button);
+  }
+
+  onTouchHoldEnd(button) {
+    if (button === 'left') {
+      this._touchLeftHold = false;
+    } else if (button === 'mid') {
+      this._touchMidHold = false;
+    } else if (button === 'right') {
+      this._touchRightHold = false;
+    }
+    this._onSendTouchHoldEnd(button);
+  }
+
+  sendButtonEvent(type) {
+    if (!this._lastTouchEvent) return; // 没有触摸事件时不发送
+
+    // 复制一份，避免污染原对象
+    const evt = { ...this._lastTouchEvent };
+
+    // 设置按钮和滚轮
+    if (type === 'left') {
+      evt.buttons = 1;
+      evt.deltaY = 0;
+    } else if (type === 'mid') {
+      evt.buttons = 4;
+      evt.deltaY = 0;
+    } else if (type === 'right') {
+      evt.buttons = 2;
+      evt.deltaY = 0;
+    } else if (type === 'wheel-up') {
+      evt.buttons = 0;
+      evt.deltaY = -1;
+    } else if (type === 'wheel-down') {
+      evt.buttons = 0;
+      evt.deltaY = 1;
+    }
+    this._processHighPriorityEvent(evt);
+
+    // 10ms后发送弹起事件（buttons=0）
+    if (type === 'left' || type === 'mid' || type === 'right') {
+      setTimeout(() => {
+        const upEvt = { ...evt, buttons: 0 };
+        this._processHighPriorityEvent(upEvt);
+      }, 10);
+    }
+  }
+
+  onWheel(jsMouseEvt) {
+    this._processLowPriorityEvent(this._parseMouseEvent(jsMouseEvt));
+  }
+
+  setTimeoutWindow(msBetweenEvents) {
+    this._msBetweenEvents = msBetweenEvents;
+  }
+
+  static setMode(mode) {
+    RateLimitedMouse.isAbsoluteMode = mode;
+  }
+
+  static setWheelDeriction(direction) {
+    RateLimitedMouse.wheelDirection = direction;
+  }
+
+  static setSensitivity(value) {
+    RateLimitedMouse.sensitivity = value;
+  }
+
+  _getTouchPosition(event, index) {
+    if (event.touches[index].target && event.touches[index].target.getBoundingClientRect) {
+      let rect = event.touches[index].target.getBoundingClientRect();
+      return {
+        x: Math.round(event.touches[index].clientX - rect.left),
+        y: Math.round(event.touches[index].clientY - rect.top),
+      };
+    }
+    return null;
+  }
+
+  _processHighPriorityEvent(mouseInfo) {
+    // Cancel pending event, if one exists.
+    this._queuedEvent = null;
+
+    this._emitEvent(mouseInfo);
+  }
+
+  _processLowPriorityEvent(mouseInfo) {
+    if (this._isInTimeoutWindow() && RateLimitedMouse.isAbsoluteMode === true) {
+      this._queuedEvent = mouseInfo;
+    } else {
+      this._emitEvent(mouseInfo);
+    }
+  }
+
+  /**
+   * Emit a mouse event immediately and start a timeout window to gate the next
+   * mouse event to send.
+   *
+   * @param {Object} mouseInfo Mouse information object, parsed from
+   * parseMouseEvent.
+   */
+  _emitEvent(mouseInfo) {
+    this._sendEventFn(mouseInfo);
+    this._startTimeoutWindow();
+  }
+
+  _startTimeoutWindow() {
+    // Clear any existing timeout window, if one is set.
+    clearTimeout(this._eventTimer); // This is a no-op if _eventTimer is null.
+    this._eventTimer = null;
+
+    // Start the timeout window to gate subsequent low-priority events.
+    this._eventTimer = setTimeout(() => {
+      this._eventTimer = null;
+      if (this._queuedEvent) {
+        this._emitEvent(this._queuedEvent);
+      }
+      this._queuedEvent = null;
+    }, this._msBetweenEvents);
+  }
+
+  _isInTimeoutWindow() {
+    return this._eventTimer !== null;
+  }
+
+  /**
+   * Parses a standard JavaScript mouse event into a TinyPilot-specific object
+   * containing information about the mouse event.
+   *
+   * @param {Object} evt A standard JavaScript mouse event, such as mousedown or
+   * mousemove.
+   * @returns {Object} The mouse event data in TinyPilot-specific format with the
+   * following properties:
+   * - buttons (number) A bitmask representing which mouse buttons are pressed,
+   *   in the same format as the buttons property from the native JavaScript mouse
+   *   events.
+   * - relativeX (number) A value between 0.0 and 1.0 representing the mouse's
+   *   relative x-offset from the left edge of the screen.
+   * - relativeY (number) A value between 0.0 and 1.0 representing the mouse's
+   *   relative y-offset from the top edge of the screen.
+   * - verticalWheelDelta (number) A -1, 0, or 1 representing movement of the
+   *   mouse's vertical scroll wheel.
+   * - horizontalWheelDelta (number) A -1, 0, or 1 representing movement of the
+   *   mouse's horizontal scroll wheel.
+   */
+  _parseMouseEvent(evt) {
+    if (RateLimitedMouse.isAbsoluteMode === false) {
+      return {
+        isAbsoluteMode: false,
+        buttons: evt.buttons,
+        relativeX: evt.movementX,
+        relativeY: evt.movementY,
+        verticalWheelDelta: RateLimitedMouse.wheelDirection * normalizeWheelDelta(evt.deltaY),
+        horizontalWheelDelta: normalizeWheelDelta(evt.deltaX),
+        sensitivity: RateLimitedMouse.sensitivity,
+      };
+    } else {
+      const boundingRect = evt.target.getBoundingClientRect();
+      const cursorX = Math.max(0, evt.clientX - boundingRect.left);
+      const cursorY = Math.max(0, evt.clientY - boundingRect.top);
+      const width = boundingRect.right - boundingRect.left;
+      const height = boundingRect.bottom - boundingRect.top;
+
+      return {
+        isAbsoluteMode: true,
+        buttons: evt.buttons,
+        relativeX: Math.min(1.0, Math.max(0.0, cursorX / width)),
+        relativeY: Math.min(1.0, Math.max(0.0, cursorY / height)),
+        verticalWheelDelta: RateLimitedMouse.wheelDirection * normalizeWheelDelta(evt.deltaY),
+        horizontalWheelDelta: normalizeWheelDelta(evt.deltaX),
+      };
+    }
+  }
 }
 
 /**
@@ -311,10 +460,8 @@ export class RateLimitedMouse {
  * negative, zero, or positive, respectively.
  */
 function normalizeWheelDelta(delta) {
-    if (!delta) {
-        return 0;
-    }
-    return Math.sign(delta);
+  if (!delta) {
+    return 0;
+  }
+  return Math.sign(delta);
 }
-
-

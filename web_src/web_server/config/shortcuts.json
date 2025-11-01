@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "shortcuts": {
+    "windows": {
+      "Alt+Meta+Esc": [
+        "AltLeft",
+        "MetaLeft",
+        "Escape"
+      ],
+      "Alt+Shift": [
+        "AltLeft",
+        "ShiftLeft"
+      ],
+      "Shift+Shift": [
+        "ShiftLeft",
+        "ShiftLeft"
+      ],
+      "Win+Space": [
+        "MetaLeft",
+        "Space"
+      ],
+      "Win": [
+        "MetaLeft"
+      ],
+      "Ctrl+W": [
+        "ControlLeft",
+        "KeyW"
+      ],
+      "Alt+Tab": [
+        "AltLeft",
+        "Tab"
+      ],
+      "Alt+F4": [
+        "AltLeft",
+        "F4"
+      ],
+      "Alt+Enter": [
+        "AltLeft",
+        "Enter"
+      ],
+      "Ctrl+Alt+F1": [
+        "ControlLeft",
+        "AltLeft",
+        "F1"
+      ],
+      "Ctrl+Alt+F2": [
+        "ControlLeft",
+        "AltLeft",
+        "F2"
+      ],
+      "Win+L": [
+        "MetaLeft",
+        "KeyL"
+      ]
+    },
+    "macos": {
+      "Cmd+Q": [
+        "MetaLeft",
+        "KeyQ"
+      ],
+      "Cmd+W": [
+        "MetaLeft",
+        "KeyW"
+      ],
+      "Cmd+Tab": [
+        "MetaLeft",
+        "Tab"
+      ],
+      "Cmd+Space": [
+        "MetaLeft",
+        "Space"
+      ],
+      "Cmd+H": [
+        "MetaLeft",
+        "KeyH"
+      ]
+    },
+    "linux": {
+      "Alt+Tab": [
+        "AltLeft",
+        "Tab"
+      ],
+      "Alt+F4": [
+        "AltLeft",
+        "F4"
+      ],
+      "Ctrl+Alt+T": [
+        "ControlLeft",
+        "AltLeft",
+        "KeyT"
+      ],
+      "Ctrl+Alt+L": [
+        "ControlLeft",
+        "AltLeft",
+        "KeyL"
+      ],
+      "Alt+F2": [
+        "AltLeft",
+        "F2"
+      ]
+    },
+    "android": {},
+    "ios": {}
+  }
+}

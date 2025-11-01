@@ -22,7 +22,7 @@
 import fs from 'fs';
 import Logger from '../../../log/logger.js';
 import Serial from '../../serial.js';
-import Transform from 'stream';
+import {Transform} from 'stream';
 import { ModuleState } from '../../../common/enums.js';
 import { SWITCH_PATH, UTF8 } from '../../../common/constants.js';
 import KVMSwitchBase from './kvmd_switch_base.js';
@@ -99,13 +99,13 @@ class KVMDTesmartSwitchBase extends KVMSwitchBase {
         const item = switchObj.kvmSwitch.items.find(item => item.id === this._switchId);
         this._path = item.deviceFile;
         if (isDeviceFile(this._path) === false) {
-          const text = `Switch path ${this._path} is not exist`;
+          const text = `Switch path ${this._path} doesn't exist`;
           logger.error(text);
           this.sendErrorNotification(text);
           this._setConfigDisable();
           resolve({
             result: false,
-            msg: `Switch path ${this._path} is not exist`
+            msg: `Switch path ${this._path} doesn't exist`
           });
           return;
         }

@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "vpn": "tailscale",
+      "icon": "mdi-vpn",
+      "title": "Tailscale VPN"
+    },
+    {
+      "vpn": "wireguard",
+      "icon": "mdi-vpn",
+      "title": "WireGuard VPN"
+    },
+    {
+      "vpn": "zerotier",
+      "icon": "mdi-vpn",
+      "title": "ZeroTier VPN"
+    }
+  ]
+}

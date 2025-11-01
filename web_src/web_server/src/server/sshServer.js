@@ -23,7 +23,7 @@ import { Client as SSHClient } from "ssh2";
 import Logger from '../log/logger.js';
 import { CONFIG_PATH, UTF8 } from '../common/constants.js';
 import fs from 'fs';
-import {NotificationType, Notification } from '../modules/notification.js';
+import { Notify } from '../modules/notification.js';
 
 const logger = new Logger();
 let activeSSHConnections = 0;
@@ -81,8 +81,7 @@ const createSshServer = (ws) => {
     ws.close();
   }).on("error", (err) => {
     logger.error(`\r\n*** SSH CONNECTION ERROR: ${err.message} ***\r\n`);
-    const notification = new Notification();
-    notification.addMessage(NotificationType.ERROR, `SSH CONNECTION ERROR: ${err.message}`);
+  Notify.error(`SSH CONNECTION ERROR: ${err.message}`);
     ws.close();
   }).on("end", () => {
     if (!connectionClosed) {

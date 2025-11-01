@@ -37,6 +37,12 @@ function apiVPNEnable(req, res, next) {
             res.json(returnObject);
             return;
         }
+        if (typeof active !== 'boolean') {
+            returnObject.code = ApiCode.INVALID_INPUT_PARAM;
+            returnObject.msg = 'active must be a boolean value';
+            res.json(returnObject);
+            return;
+        }
         if(active === true){
             executeCMD(`systemctl enable --now ${vpn}`)
             .then(() => {

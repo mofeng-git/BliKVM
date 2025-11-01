@@ -89,13 +89,13 @@ class KVMDBliSwitchV2 extends KVMSwitchBase {
         const item = switchObj.kvmSwitch.items.find(item => item.id === 2);
         this._path = item.deviceFile;
         if (isDeviceFile(this._path) === false) {
-          const text = `Switch path ${this._path} is not exist`;
+          const text = `Switch path ${this._path} doesn't exist`;
           logger.error(text);
           this.sendErrorNotification(text);
           this._setConfigDisable();
           resolve({
             result: false,
-            msg: `Switch path ${this._path} is not exist`
+            msg: `Switch path ${this._path} doesn't exist`
           });
           return;
         }

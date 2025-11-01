@@ -1,4 +1,3 @@
-
 /*****************************************************************************
 #                                                                            #
 #    blikvm                                                                  #
@@ -26,18 +25,26 @@
  */
 
 // Styles
-import '@mdi/font/css/materialdesignicons.css'
-import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css';
+import 'vuetify/styles';
 
 // Composables
-import { createVuetify } from 'vuetify'
+import { createVuetify } from 'vuetify';
+// labs
+import { VTreeview } from 'vuetify/labs/VTreeview';
+import { VFileUpload } from 'vuetify/labs/VFileUpload';
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
+  components: {
+    // labs
+    VTreeview,
+    VFileUpload,
+  },
   theme: {
-    defaultTheme: 'light',
+    defaultTheme: 'dark',
   },
   icons: {
-    iconfont: 'mdi', 
+    iconfont: 'mdi',
   },
-})
+});

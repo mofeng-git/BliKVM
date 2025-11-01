@@ -22,8 +22,9 @@
 import { createSocket } from 'unix-dgram';
 import { createApiObj, ApiCode } from '../../common/api.js';
 import fs from 'fs';
+import { writeJsonAtomic } from '../../common/atomic-file.js';
 import ATX from '../../modules/kvmd/kvmd_atx.js';
-import { CONFIG_PATH } from '../../common/constants.js';
+import { CONFIG_PATH, UTF8 } from '../../common/constants.js';
 
 /**
  * Handles ATX API request.
@@ -94,6 +95,40 @@ function apiATXState(req, res, next) {
   res.json(ret);
 }
 
+async function apiActiveState(req, res, next) {
+  try {
+    const ret = createApiObj();
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    if (config.atx.isActive === undefined) {
+      config.atx.isActive = true; // 默认启用ATX功能
+      await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.atx.isActive = true; });
+    }
+    ret.data.isActive = config.atx.isActive;
+    res.json(ret);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function apiActiveSet(req, res, next) {
+  try {
+    const ret = createApiObj();
+    const { isActive } = req.body;
+    if (typeof isActive !== 'boolean') {
+      ret.msg = 'Invalid input, active must be a boolean value';
+      ret.code = ApiCode.INVALID_INPUT_PARAM;
+      return res.status(400).json(ret);
+    }
+  const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+  config.atx.isActive = isActive; // Set the active state based on the request body
+  await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.atx.isActive = isActive; });
+    ret.data.isActive = config.atx.isActive;
+    res.json(ret);
+  } catch (error) {
+    next(error);
+  }
+}
+
 /**
  * Writes a command to the socket.
  *
@@ -121,4 +156,4 @@ function writeToSocket(cmd) {
   });
 }
 
-export { apiATXClick, apiATXState };
+export { apiATXClick, apiATXState, apiActiveState, apiActiveSet};

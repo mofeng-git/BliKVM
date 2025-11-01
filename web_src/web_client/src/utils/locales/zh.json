@@ -1,166 +1,589 @@
 {
-    "login":{
-        "username":"用户名",
-        "username_placeholder":"请输入你的用户名",
-        "password":"密码",
-        "password_placeholder":"请输入你的密码",
-        "login":"登陆",
-        "login_fail":"登陆失败,请检查账号密码信息",
-        "two_fa_code": "2FA验证码",
-        "two_fa_code_placeholder": "如果启用"
+  "app": {
+    "defaultTitle": "BliKVM 矩阵 \"KVM-over-IP\"",
+    "subtitle": "开源 \"KVM-over-IP\""
+  },
+  "settings": {
+    "title": "设备管理",
+    "configuration": "设备配置",
+    "device": {
+      "subtitle": "管理您的 IP KVM 设备",
+      "general": {
+        "title": "常规",
+        "hardware": "硬件",
+        "os": "操作系统",
+        "architecture": "架构",
+        "uptime": "运行时间",
+        "timezone": "时区",
+        "connectedClients": "已连接客户端",
+        "deviceVersion": "设备版本",
+        "kvm_device_identity": {
+          "title": "KVM 设备身份",
+          "subtitle": "自定义目标系统上的 KVM 身份",
+          "monitorNameField": "显示器名称",
+          "manufacturer": "制造商",
+          "productIdField": "产品 ID",
+          "serialNumber": "序列号"
+        },
+        "display": {
+          "title": "LCD/OLED 显示屏",
+          "subtitle": "",
+          "mode": "显示模式",
+          "bootMode": "启动后显示时间",
+          "intervalMode": "显示间隔",
+          "secondaryIP": "第二个 IP"
+        },
+        "fan": {
+          "title": "风扇",
+          "tempThresholdField": "温度阈值"
+        }
+      },
+      "healthCheck": {
+        "title": "健康检查",
+        "ramThreshold": "内存阈值",
+        "storageThreshold": "存储阈值",
+        "networkLatencyThreshold": "网络延迟阈值",
+        "temperatureThreshold": "温度阈值"
+      },
+      "systemControl": {
+        "title": "系统控制",
+        "subtitle": "管理 KVM 设备系统操作",
+        "warning": "重启将暂时断开所有连接并中断任何正在进行的操作。",
+        "rebootButton": "重启 KVM 设备",
+        "confirmTitle": "确认系统重启",
+        "confirmMessage": "您确定要重启 KVM 设备吗？",
+        "confirmWarning": "这将断开所有活动会话，设备将在大约 30-60 秒内不可用。",
+        "confirmButton": "是的，立即重启"
+      },
+      "video": {
+        "title": "视频",
+        "subtitle": "配置您的视频偏好",
+        "isHDMIActivateField": "启用 HDMI?",
+        "modeField": "视频模式",
+        "orientation": "方向",
+        "inputFormat": "HDMI输入格式",
+        "liveFormat": "实时比特率/FPS",
+        "desiredFpsField": "期望的帧率",
+        "mjpegQualityField": "质量",
+        "WebRTCBitrateField": "比特率",
+        "WebRTCGopField": "图片组"
+      },
+      "audio": {
+        "title": "音频输入",
+        "subtitle": "配置您的音频偏好",
+        "isRegisteredField": "启用音频输入？",
+        "registerMic": "注册麦克风"
+      },
+      "hid": {
+        "title": "键盘和鼠标",
+        "subtitle": "配置人机界面设备偏好",
+        "section": "配置",
+        "audioVolumeField": "音频",
+        "audioVolumeHelp": "音频帮助",
+        "modeField": "鼠标模式",
+        "modeHelp": "选择鼠标操作模式。我有一些文本用于此。",
+        "absolute": "绝对",
+        "relative": "相对",
+        "isActiveField": "启用 HID?",
+        "isActiveHelp": "启用 HID 帮助",
+        "mouseJigglerIntervalField": "鼠标抖动间隔",
+        "mouseJigglerIntervalHelp": "抖动帮助",
+        "pollingIntervalField": "轮询间隔（毫秒）",
+        "pollingIntervalHelp": "轮询间隔帮助",
+        "change_mode": "更改鼠标模式成功，现在需要重启 KVM 和目标 PC!",
+        "relativeSensitivityField": "鼠标灵敏度",
+        "sensitivity": "灵敏度"
+      }
     },
-    "common":{
-        "available":"可用的",
-        "refresh":"刷新",
-        "device_path": "设备路径",
-        "reboot_info": "你确定要重启KVM吗?重启后,web会断开连接几分钟"
+    "gui": {
+      "title": "图形用户界面",
+      "subtitle": "选择您的 Web UI 设置",
+      "isLocalCursorVisibleField": "在视频中显示本地光标？",
+      "isLocalCursorVisibleHelp": "隐藏本地视频光标帮助",
+      "language": {
+        "languageField": "语言",
+        "languageHelp": "语言帮助",
+        "helpTranslate": "帮助翻译"
+      },
+      "alert": {
+        "title": "警报",
+        "isAlertField": "显示警报？",
+        "showAlertHelp": "显示警报帮助",
+        "locationField": "位置",
+        "locationHelp": "选择显示警报的位置。"
+      },
+      "cursor": {
+        "title": "本地光标"
+      },
+      "temperature": {
+        "title": "温度",
+        "unit": "温度单位",
+        "celsius": "摄氏度",
+        "fahrenheit": "华氏度"
+      },
+      "login": {
+        "title": "登录",
+        "showCocField": "显示行为准则消息？",
+        "conductUrlField": "填写完整地址，以 http 或 https 开头"
+      }
     },
-    "button":{
-        "reboot":"重启",
-        "later":"稍后",
-        "ok":"确认",
-        "cancel":"取消",
-        "close":"关闭",
-        "save":"保存"
+    "text": {
+      "title": "文本提取与粘贴",
+      "subtitle": "控制设备与目标系统之间的文本传输",
+      "paste": {
+        "title": "粘贴文本",
+        "subtitle": "通过模拟单个按键将文本发送到远程机器",
+        "input": "输入文本",
+        "inputHelp": "输入文本",
+        "obfuscate": "模糊显示",
+        "confirmOnSend": "发送前确认？",
+        "selectedKeymap": "使用主机键盘布局",
+        "send": "发送文本",
+        "keymap": "键盘布局",
+        "delay": "延迟"
+      },
+      "extract": {
+        "title": "文本提取",
+        "selectArea": "选择区域"
+      }
     },
-    "label":{
-        "status":"状态",
-        "created":"已创建",
-        "not_created": "未创建",
-        "connected":"已连接",
-        "dis_connected":"未连接",
-        "none": "无",
-        "enable":"已使能",
-        "disable":"未使能",
-        "warning":"警告"
+    "msd": {
+      "stream": {
+        "subtitle": "直接从浏览器流式传输镜像"
+      },
+      "url": {
+        "subtitle": "从任何公共网络地址访问镜像"
+      },
+      "local": {
+        "subtitle": "从设备存储访问镜像"
+      },
+      "title": "虚拟媒体",
+      "subtitle": "选择如何连接您的虚拟媒体",
+      "toolbarTitle": "启动镜像",
+      "connectVirtualMedia": "连接到虚拟媒体",
+      "virtualMediaCreate": "创建虚拟媒体",
+      "deviceFileField": "设备",
+      "deviceFileHelp": "设备帮助",
+      "disconnectVirtualMedia": "断开虚拟媒体",
+      "setMsdSize": "使用驱动器大小",
+      "streamSourceUrl": "流源 URL",
+      "urlSource": "URL 源",
+      "imageName": "镜像名称",
+      "make_msd_size": "创建虚拟媒体大小",
+      "abort": "中止",
+      "deleteMSD": "删除虚拟媒体",
+      "connect_to_host": "连接到主机",
+      "refreshList": "刷新列表",
+      "deleteImage": "删除镜像",
+      "deleteImageConfirm": "您确定要删除镜像吗",
+      "irreversable": "此过程不可逆。",
+      "deleteMsdConfirm": "您确定要删除虚拟媒体吗？",
+      "resizeFilesystem": "调整文件系统大小",
+      "noDataAvailable": "无可用数据",
+      "uploadOrDrop": "上传或拖放文件",
+      "virtualMediaDelete": "删除虚拟媒体",
+      "mount": "挂载",
+      "created": "已创建",
+      "notCreated": "未创建",
+      "readyForUse": "可用",
+      "mountImage": "挂载至文件管理器",
+      "unmountImage": "卸载文件管理器"
     },
-    "tab":{
-        "atx":{
-            "tip":"开关机",
-            "title":"电源管理",
-            "atx_no_connect":"未连接",
-            "atx_poweron":"开机",
-            "atx_poweroff":"关机",
-            "atx_forceoff":"强制关机",
-            "atx_reset":"重启",
-            "wake_on_lan": "Wake on LAN",
-            "ledPwr":"电源指示灯",
-            "ledHdd":"硬盘指示灯"
-            },
-        "home":"主页",
-        "keyboard":"键盘",
-        "language":{
-            "tip":"语言",
-            "add":"添加新语言"
-        },
-        "hid":{
-            "loop_block_enable":"停止HID环出",
-            "loop_block_disable":"开始HID环出"
-        },
-        "mouse":{
-            "tip":"鼠标",
-            "title":"鼠标 设置",
-            "mode":"模式",
-            "absolute":"绝对",
-            "relative":"相对",
-            "soft_hid_enable":"软件使能HID",
-            "soft_hid_disable":"软件关闭HID",
-            "jiggler_enable":"打开鼠标摇摆",
-            "jiggler_disable":"关闭鼠标摇摆",
-            "change_mode":"修改鼠标模式成功,你需要重启你的kvm和被控设备,确保模式生效",
-            "sensitivity":"灵敏度",
-            "polling": "鼠标轮询"
-        },
-        "msd":{
-            "tip":"U盘",
-            "title":"大容量存储设备",
-            "available_images":"可用系统镜像",
-            "image_name":"镜像名称",
-            "make_msd_size":"制作U盘大小",
-            "make_usb_drive":"制作U盘",
-            "abort":"弹出",
-            "delete_usb_drive":"删除U盘",
-            "connect_to_host":"连接到主机",
-            "refresh_list":"刷新列表",
-            "remove_image_tip":"移除镜像",
-            "remove_image_confirm":"你确定要移除镜像吗?"   
-        },
-        "notification":{
-            "tip":"通知",
-            "log":"最近20行日志"
-        },
-        "switch":{
-            "tip":"切换器",
-            "choose_a_model":"选择型号",
-            "choose_a_channel":"选择通道",
-            "config": "切换器配置",
-            "no_model_selected": "未选择型号"
-        },
-        "text":{
-            "tip":"文本",
-            "title":"拷贝和粘贴",
-            "paste":"粘贴到被控设备",
-            "paste_info": "只支持英文",
-            "copy":"通过文字识别来粘贴",
-            "paste_button":"粘贴",
-            "select_area":"选择区域",
-            "for":"从",
-            "text_recognition":"文字识别"
-        },
-        "user":{
-            "tip":"用户",
-            "logout":"登出",
-            "account_settings":"账号设置",
-            "user_setting":"用户设置",
-            "new_username":"新用户名",
-            "new_password":"新密码",
-            "confirm_password":"确认密码",
-            "current_password":"当前密码",
-            "change_password":"修改密码",
-            "version":"版本",
-            "docs":"文档",  
-            "dsicord":"Discord",
-            "issue":"问题",
-            "two_factor_auth": "双因素认证",
-            "two_factor_code": "来自App的验证码",
-            "enable_two_factor": "使能2FA",
-            "disable_two_factor": "关闭2FA"
-        },
-        "video":{
-            "tip":"视频",
-            "title":"视频设置",
-            "mode":"视频模式",
-            "fps":"帧率",
-            "quality":"质量",
-            "reset_take_effect":"重启修改参数生效",
-            "Mbps":"Mbps",
-            "gop":"gop",
-            "reset_stream":"重启视频进程",
-            "resolution":"分辨率",
-            "volume":"音量",
-            "refresh":"点击关闭后,3秒后自动刷新页面后恢复正常操作",
-            "snapshot" : "截图",
-            "start_record" : "开始录制",
-            "stop_record" : "结束录制"
-        },
-        "setting":{
-            "tip":"设置",
-            "fetch_version":"获取最新版本",
-            "switch_protocol":"切换协议",
-            "http":"HTTP",
-            "https":"HTTPS",
-            "reboot_kvm":"重启KVM",
-            "fetch": "获取",
-            "no_new_version":"没有新版本",
-            "new_version":"你可以去终端更新新版本"
-        },
-        "shortcuts":{
-            "tip":"快捷键"
-        },
-        "terminal":"终端",
-        "full_screen":"全屏",
-        "full_screen_exit":"退出全屏",
-        "hide":"最小化"
+    "storage": {
+      "title": "存储",
+      "subtitle": "查看存储利用率",
+      "freeSize": "可用空间"
+    },
+    "atx": {
+      "title": "远程电源管理",
+      "subtitle": "通过 ATX 引脚进行硬件级电源控制",
+      "iconInfo": "ATX 电源",
+      "showATXField": "启用远程电源管理？",
+      "commandField": "命令",
+      "atx_no_connect": "已禁用",
+      "powerOn": "开机",
+      "powerOff": "关机",
+      "forceOff": "强制关机",
+      "reset": "重启",
+      "ledPwr": "电源指示灯",
+      "ledHdd": "硬盘指示灯"
+    },
+    "switch": {
+      "title": "KVM 切换器",
+      "subtitle": "配置您的切换器",
+      "activeField": "启用切换器？",
+      "section": "配置",
+      "switch": "",
+      "switchField": "切换器是否启用？",
+      "switchHelp": "切换器帮助",
+      "moduleField": "模块",
+      "moduleHelp": "模块帮助",
+      "channelField": "通道",
+      "channelHelp": "通道帮助",
+      "selectModel": "选择型号",
+      "selectChannel": "选择通道",
+      "deviceFile": "设备",
+      "deviceFileField": "设备字段",
+      "deviceFileHelp": "在类 Unix 操作系统中表示 USB 转串口适配器的设备。",
+      "deviceFilePlaceholder": "输入设备"
+    },
+    "network": {
+      "title": "网络",
+      "subtitle": "管理您的网络设置",
+      "isHttpsConnectionEnabledHelp": "是否启用 HTTPS 连接帮助",
+      "isDiscoverableField": "使设备可被发现？",
+      "isDiscoverableHelp": "是否可被发现帮助",
+      "latency": "网络延迟",
+      "general": {
+        "hostnameField": "主机名",
+        "hostnameHelp": "主机名帮助",
+        "osField": "操作系统",
+        "fqdnField": "完全限定域名 (FQDN)",
+        "mac": "MAC 地址",
+        "ip4Field": "IPv4",
+        "dhcp": "DHCP 模式",
+        "dynamic": "动态",
+        "static": "静态"
+      },
+      "services": {
+        "title": "服务",
+        "httpPortField": "HTTP 端口号",
+        "httpsPortField": "HTTPS 端口号",
+        "isHttpsConnectionEnabledField": "启用 HTTPS 连接？"
+      },
+      "wol": {
+        "add": "添加设备",
+        "title": "远程唤醒 (WOL)",
+        "subtitle": "发送 WOL 魔术包以唤醒远程设备",
+        "refreshList": "刷新 WOL 列表",
+        "target": "目标",
+        "section": "目标配置",
+        "mac": "MAC 地址 (ff:ff:ff:ff:ff:ff)",
+        "macField": "MAC 字段",
+        "macHelp": "MAC 帮助",
+        "name": "设备名称",
+        "wakeup": "唤醒",
+        "newDeiviceName": "新设备名称",
+        "newDeviceMac": "新 MAC 地址"
+      }
+    },
+    "security": {
+      "title": "安全",
+      "subtitle": "决定如何保护您的设备",
+      "redirectHttpsField": "是否自动将 HTTP 连接重定向到 HTTPS？",
+      "redirectHttpsHelp": "重定向 HTTPS 帮助",
+      "authorization": {
+        "title": "授权",
+        "subtitle": "访问控制列表",
+        "subtitle1": "允许列表",
+        "subtitle2": "阻止列表",
+        "allowlist": "将您信任的 IP 地址列入白名单",
+        "blocklist": "将禁止登录的 IP 地址列入黑名单",
+        "remove": "从列表中移除",
+        "newIPAdress": "新 IP 地址"
+      },
+      "authentication": {
+        "title": "身份验证",
+        "subtitle": "身份验证类型",
+        "2faTitle": "双因素身份验证",
+        "isAuthEnabledField": "是否启用身份验证？",
+        "isAuthEnabledHelp": "身份验证帮助",
+        "is2FaEnabledField": "是否启用双因素身份验证？",
+        "is2FaEnabledHelp": "双因素身份验证帮助",
+        "2faScan": "扫描二维码",
+        "2faScanHelp": "使用身份验证器应用程序或浏览器扩展程序扫描。",
+        "2faLoading": "正在加载二维码",
+        "2faScanKeyHelp": "无法扫描？使用密钥设置",
+        "learnMore": "了解更多",
+        "2faEnterCode": "输入提供的验证码",
+        "2faFinishInfo": "您的账户现在已启用双因素身份验证保护。",
+        "2faDisabledInfo": "输入提供的验证码以禁用双因素身份验证",
+        "setup": "设置",
+        "verify": "验证",
+        "complete": "完成",
+        "disable": "禁用",
+        "ssh": {
+          "publicKeyfield": "SSH 公钥"
+        }
+      },
+      "sessionMgmnt": {
+        "title": "会话管理",
+        "subtitle": "VPN(虚拟专用网络)"
+      },
+      "reset": {
+        "title": "重置配置",
+        "subtitle": "将配置重置为默认值。\n这将使您退出登录。",
+        "retainPasswordField": "保留所有密码不变？",
+        "retainPasswordHelp": "保留管理员密码帮助",
+        "resetConfig": "重置配置"
+      },
+      "iam": {
+        "systemField": "IAM 系统",
+        "systemHelp": "系统帮助",
+        "authMethodField": "身份验证方法",
+        "authMethodHelp": "身份验证方法帮助"
+      },
+      "session": {
+        "isAutoLogoutField": "5 分钟不活动后自动注销",
+        "isAutoLogoutHelp": "自动注销帮助",
+        "vpn": {
+          "ip": "IP 地址",
+          "isTailscaleEnabledField": "是否启用 Tailscale?",
+          "isTailscaleEnabledHelp": "Tailscale 启用帮助"
+        }
+      }
+    },
+    "integrations": {
+      "title": "集成",
+      "subtitle": "与第三方系统集成",
+      "prometheus": {
+        "title": "Prometheus",
+        "isActiveField": "使用 Prometheus？",
+        "isActiveHelp": "是否启用帮助",
+        "endpointField": "端点 URL",
+        "endpointHelp": "端点帮助",
+        "refreshIntervalField": "刷新间隔"
+      },
+      "snmp": {
+        "title": "SNMP 监控",
+        "isEnabledField": "是否启用 SNMP？",
+        "isEnabledHelp": "是否启用帮助",
+        "snmpVersionField": "版本",
+        "snmpVersionHelp": "版本帮助",
+        "snmpCommunityStringField": "社区字符串",
+        "snmpCommunityStringHelp": "社区字符串帮助",
+        "snmpHostnameField": "SNMP 主机名",
+        "snmpHostnameHelp": "主机名帮助",
+        "snmpOidField": "对象标识符",
+        "snmpOidHelp": "对象标识符帮助"
+      },
+      "webhook": {
+        "webhookField": "Webhooks",
+        "webhookHelp": "Webhooks 帮助",
+        "endpointEventField": "事件",
+        "endpointEventHelp": "事件帮助",
+        "endpointNameField": "端点名称",
+        "endpointNameHelp": "端点名称帮助",
+        "endpointURLField": "端点 URL",
+        "endpointURLHelp": "端点 URL 帮助"
+      }
+    },
+    "scripts": {
+      "title": "脚本",
+      "subtitle": "上传和下载您喜欢的脚本"
+    },
+    "analytics": {
+      "title": "分析",
+      "subtitle": ""
+    },
+    "serial": {
+      "title": "串行终端",
+      "subtitle": "通过串行通信与目标系统交互",
+      "section": "配置",
+      "serialPortField": "串行端口",
+      "serialPortHelp": "串行端口帮助",
+      "baudrateField": "波特率",
+      "baudrateHelp": "波特率帮助"
+    },
+    "identity": {
+      "title": "KVM 设备身份",
+      "subtitle": "自定义目标系统上的 KVM 身份",
+      "monitorNameField": "显示器名称",
+      "monitorNameHelp": "显示器名称帮助",
+      "manufacturerNameField": "制造商",
+      "manufacturerNameHelp": "制造商帮助",
+      "productIdField": "产品 ID",
+      "productIdHelp": "产品 ID 帮助",
+      "serialField": "序列号",
+      "serialHelp": "序列号帮助"
     }
-
+  },
+  "login": {
+    "user": "用户名",
+    "username": "用户名",
+    "userPlaceholder": "请输入您的用户名",
+    "password": "密码",
+    "passwordPlaceholder": "请输入您的密码",
+    "login": "登录",
+    "logout": "登出",
+    "otp": "2FA (如果已开启)",
+    "loginAccount": "登录到您的账户",
+    "secureNotice1": "安全环境通知",
+    "secureNotice2": "您正在进入一个安全的控制环境.",
+    "adhere": "请遵守",
+    "eCOC": "数字工作环境行为准则",
+    "forbidden": "严禁未经授权的访问.",
+    "loginFailed": "登录失败。请检查您的凭据"
+  },
+  "common": {
+    "revertLastSaved": "恢复到上次保存",
+    "available": "可用",
+    "refresh": "刷新",
+    "noData": "无数据",
+    "copy": "复制",
+    "connect": "已连接",
+    "disconnect": "已断开",
+    "current": "实际",
+    "total": "总计",
+    "active": "活跃",
+    "unavailable": "不可用",
+    "inactive": "非活跃",
+    "download": "下载",
+    "delete": "删除",
+    "general": "通用",
+    "remove": "移除",
+    "add": "添加",
+    "disabled": "已禁用",
+    "basic": "基础",
+    "use": "使用",
+    "cancel": "取消",
+    "close": "关闭",
+    "ok": "确定",
+    "configure": "配置",
+    "overlay": "overlay",
+    "overlayOn": "开启叠加层",
+    "overlayOff": "关闭叠加层",
+    "takeSnapshot": "截图",
+    "startRecording": "开始录制",
+    "stopRecording": "停止录制",
+    "send": "发送",
+    "fullscreenMode": "进入全屏模式",
+    "keyboard": "键盘",
+    "mouse": "鼠标",
+    "record": "录制",
+    "recordShortcut": "录制快捷键...",
+    "dismiss": "撤销",
+    "local": "本地",
+    "keypress": "按键",
+    "version": "版本",
+    "client": "前端",
+    "server": "后端",
+    "used": "已用",
+    "free": "剩余",
+    "unregister": "未注册",
+    "allowed": "已允许",
+    "blocked": "已阻止",
+    "retry": "立刻重试",
+    "hide": "隐藏",
+    "video": "视频",
+    "sshTerminal": "SSH 终端",
+    "serialTerminal": "串行终端",
+    "notifications": "通知"
+  },
+  "label": {
+    "connected": "已连接",
+    "disconnected": "已断开",
+    "none": "无",
+    "yes": "是",
+    "no": "否",
+    "warning": "警告 // 使用图标"
+  },
+  "notification": {
+    "title": "通知",
+    "subtitle": "......",
+    "log": "最近的 20 条日志"
+  },
+  "account": {
+    "title": "账户",
+    "subtitle": "管理您的账户",
+    "section": "用户配置",
+    "users": "用户",
+    "isActiveField": "是否激活？",
+    "isActivedHelp": "激活帮助",
+    "userField": "用户名",
+    "userPlaceholder": "请输入用户名",
+    "userHelp": "用户名帮助",
+    "passwordField": "密码",
+    "passwordPlaceholder": "请输入密码",
+    "passwordHelp": "确保密码足够强",
+    "rePasswordField": "重新输入密码",
+    "rePasswordPlaceholder": "请再次输入密码",
+    "rePasswordHelp": "确认密码",
+    "roleField": "角色",
+    "roleHelp": "角色帮助",
+    "addUser": "添加用户",
+    "changePassword": "更改密码",
+    "user_setting": "TODO 用户设置",
+    "new_username": "TODO 新用户名",
+    "new_password": "TODO 新密码",
+    "confirm_password": "TODO 确认密码",
+    "current_password": "TODO 当前密码",
+    "change_password": "TODO 更改密码",
+    "docs": "文档",
+    "discord": "Discord",
+    "issue": "问题"
+  },
+  "hid": {
+    "section": "配置",
+    "audioVolumeField": "音频",
+    "audioVolumeHelp": "音频帮助",
+    "modeHelp": "选择鼠标操作模式。我有一些文本用于此。",
+    "behaviourField": "鼠标行为模式(当选择双模式时)",
+    "absolute": "绝对",
+    "relative": "相对",
+    "registration": {
+      "dual": "双模式鼠标(快速切换)",
+      "absolute": "仅注册绝对模式",
+      "relative": "仅注册相对模式"
+    },
+    "isActiveField": "启用 HID?",
+    "isActiveHelp": "启用 HID 帮助",
+    "mouseJigglerIntervalHelp": "抖动帮助",
+    "pollingIntervalHelp": "轮询间隔帮助",
+    "change_mode": "更改鼠标模式成功，现在需要重启 KVM 和目标 PC.",
+    "wheelReverseField": "反转鼠标滚轮",
+    "passthrough": "启用键鼠环出?",
+    "passthroughWheelReverseField": "反转环出鼠标滚轮",
+    "sensitivity": "灵敏度"
+  },
+  "appFooter": {
+    "about": "关于 BliKVM",
+    "sshTerminal": "SSH 终端",
+    "serialTerminal": "串行终端"
+  },
+  "terminal": {
+    "clearTerminal": "清空终端",
+    "copyText": "复制文本",
+    "pasteText": "粘贴文本",
+    "scrollToTop": "滚动到顶部",
+    "scrollToBottom": "滚动到底部",
+    "connected": "已连接",
+    "disconnected": "已断开",
+    "sshTerminalConsole": "SSH 终端控制台",
+    "copySelection": "复制选中内容或全部文本",
+    "pasteFromClipboard": "从剪贴板粘贴",
+    "scrollToTopAction": "滚动到顶部",
+    "scrollToBottomAction": "滚动到底部"
+  },
+  "dataIterator": {
+    "noDataText": "无可用数据",
+    "rowsPerPageText": "每页项目数：",
+    "pageText": "{0}-{1} 共 {2}"
+  },
+  "diagnostics": {
+    "videoStreamerServerClosed": "视频流服务器已关闭",
+    "reconnectMessage": "正在尝试重连... {countdownDisplay}s",
+    "reconnectStopMessage": "已达到最大重新连接尝试次数。请检查设备",
+    "reloadWindow": "重新加载窗口",
+    "retryNow": "立即重试",
+    "noSignal": "未检测到信号",
+    "connecting": "正在连接...",
+    "connectionLost": "连接丢失",
+    "connectionLostDetail": "与远程服务器的连接已丢失。您可以尝试重新连接或重新加载页面。",
+    "checkDevice": "请检查设备"
+  },
+  "ctrlAltDel": {
+    "confirmTitle": "发送CTRL+ALT+DEL",
+    "confirmMessage": "你确定要发送CTRL+ALT+DEL锁屏快捷键给目标系统吗?",
+    "warningMessage": "这可能会中断当前会话或触发系统操作.",
+    "sendButton": "发送"
+  },
+  "aboutPage": {
+    "newVersion": "新版本",
+    "runCommandTip": "通过外部终端运行此命令:",
+    "dontShowAfterLogin": "登录后不再显示",
+    "updating": "正在升级中",
+    "startUpgrade": "开始升级",
+    "runningLatestVersion": "正在运行最新版本"
+  }
 }

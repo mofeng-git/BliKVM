@@ -29,7 +29,7 @@ get_board_type() {
   elif [[ $(exec_cmd "cat /proc/cpuinfo") == *"$h616_board"* ]] || [[ $(exec_cmd "cat /run/machine.id") == *"$h616_board"* ]]; then
     type=$v4_h616
   else
-    type=$unknown
+    type=$v4_h616
   fi
   echo "$type"
 }

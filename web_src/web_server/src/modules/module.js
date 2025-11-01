@@ -26,7 +26,7 @@ class Module {
 
   _state = ModuleState.STOPPED;
 
-  get state() {
+  getstate() {
     return this._state;
   }
 

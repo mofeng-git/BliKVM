@@ -1,0 +1,15 @@
+{
+  "version": "v2",
+  "items": [
+    {
+      "deviceId": "123459ff129-9139-4b78-bc02-2b66a5f1f61a",
+      "name": "Plex Media Server",
+      "mac": "12:AB:12:12:12:AD"
+    },
+    {
+      "deviceId": "529ff129-9139-4b78-bc02-2b66a5f1f61a",
+      "name": "Synology NAS",
+      "mac": "11:ZZ:12:12:12:AD"
+    }
+  ]
+}

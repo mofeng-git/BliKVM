@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "icon": "mdi-linux",
+      "title": "netboot.xzy",
+      "subtitle": "Boot and install various operating systems over network",
+      "url": "https://boot.netboot.xyz/ipxe/netboot.xyz.iso"
+    },
+    {
+      "icon": "mdi-linux",
+      "title": "Ubuntu 24.04.2 LTS (Noble Numbat)",
+      "subtitle": "",
+      "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.2-desktop-amd64.iso"
+    },
+    {
+      "icon": "mdi-linux",
+      "title": "Debian 12",
+      "subtitle": "",
+      "url": "https://"
+    },
+    {
+      "icon": "mdi-linux",
+      "title": "Fedora",
+      "subtitle": "",
+      "url": "https://"
+    }
+  ]
+}

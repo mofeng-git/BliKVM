@@ -1,0 +1,43 @@
+export function useKeymap() {
+  const keymapOptions = [
+    { value: 'ar', label: 'Arabic (ar)' },
+    { value: 'bepo', label: 'Bépo (bepo)' },
+    { value: 'cz', label: 'Czech (cz)' },
+    { value: 'da', label: 'Danish (da)' },
+    { value: 'de', label: 'German (de)' },
+    { value: 'de-ch', label: 'Swiss German (de-ch)' },
+    { value: 'en-gb', label: 'British English (en-gb)' },
+    { value: 'en-us', label: 'US English (en-us)' },
+    { value: 'en-us-altgr-intl', label: 'US English (AltGr Intl)' },
+    { value: 'es', label: 'Spanish (es)' },
+    { value: 'et', label: 'Estonian (et)' },
+    { value: 'fi', label: 'Finnish (fi)' },
+    { value: 'fo', label: 'Faroese (fo)' },
+    { value: 'fr', label: 'French (fr)' },
+    { value: 'fr-be', label: 'Belgian French (fr-be)' },
+    { value: 'fr-ca', label: 'Canadian French (fr-ca)' },
+    { value: 'fr-ch', label: 'Swiss French (fr-ch)' },
+    { value: 'hr', label: 'Croatian (hr)' },
+    { value: 'hu', label: 'Hungarian (hu)' },
+    { value: 'is', label: 'Icelandic (is)' },
+    { value: 'it', label: 'Italian (it)' },
+    { value: 'ja', label: 'Japanese (ja)' },
+    { value: 'lt', label: 'Lithuanian (lt)' },
+    { value: 'lv', label: 'Latvian (lv)' },
+    { value: 'mk', label: 'Macedonian (mk)' },
+    { value: 'nl', label: 'Dutch (nl)' },
+    { value: 'no', label: 'Norwegian (no)' },
+    { value: 'pl', label: 'Polish (pl)' },
+    { value: 'pt', label: 'Portuguese (pt)' },
+    { value: 'pt-br', label: 'Brazilian Portuguese (pt-br)' },
+    { value: 'ru', label: 'Russian (ru)' },
+    { value: 'sl', label: 'Slovenian (sl)' },
+    { value: 'sv', label: 'Swedish (sv)' },
+    { value: 'th', label: 'Thai (th)' },
+    { value: 'tr', label: 'Turkish (tr)' },
+  ];
+
+  return {
+    keymapOptions,
+  };
+}

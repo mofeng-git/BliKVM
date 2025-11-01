@@ -1,4 +1,3 @@
-
 /*****************************************************************************
 #                                                                            #
 #    blikvm                                                                  #
@@ -22,34 +21,49 @@
 // http.js
 import axios from 'axios';
 import Config from '@/config.js';
+import { storeToRefs } from 'pinia';
+import { useAppStore } from '@/stores/stores';
+
+const apiUrl = `${Config.http_protocol}//${Config.host_ip}${Config.host_port}/api`;
+console.log(apiUrl);
 
 const http = axios.create({
-    baseURL: `${Config.http_protocol}//${Config.host_ip}${Config.host_port}/api`,
-    withCredentials: true
+  baseURL: apiUrl,
+  withCredentials: true,
 });
 
-http.interceptors.request.use(config => {
-    const token = localStorage.getItem('token'); 
+http.interceptors.request.use(
+  (config) => {
+    const store = useAppStore();
+    const { account } = storeToRefs(store);
+
+    const token = localStorage.getItem('token');
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    const username = localStorage.getItem('username');
-    if (username) {
-        config.headers.Username = username;
+    const user = account.value.user;
+    if (user) {
+      config.headers.Username = user;
     }
     return config;
-}, error => {
+  },
+  (error) => {
     return Promise.reject(error);
-});
+  }
+);
 
-http.interceptors.response.use(response => {
+http.interceptors.response.use(
+  (response) => {
     return response;
-}, error => {
+  },
+  (error) => {
     if (error.response && error.response.status === 401) {
-        console.error('Authentication failed, redirecting to login page...');
-        window.location.href = '/';
+      console.error(error.response);
+      console.error('Authentication failed, redirecting to login page...');
+      window.location.href = '/';
     }
     return Promise.reject(error);
-});
+  }
+);
 
 export default http;

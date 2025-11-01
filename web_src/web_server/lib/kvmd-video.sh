@@ -7,7 +7,7 @@ h616_board="MangoPi Mcore"
 
 # Define board type values
 v3_hat="V3_HAT"
-v2_pcie="V2_PCIE"
+v2_pcie="CM4"
 v4_h616="V4_H616"
 unknown="UNKNOWN"
 
@@ -26,8 +26,9 @@ get_board_type() {
   elif [[ $(exec_cmd "tr -d '\0' < /proc/device-tree/model") == *"$h616_board"* ]] ; then
     type=$v4_h616
   else
-    type=$unknown
-    exit 1
+    type=$v4_h616
+    #type=$unknown
+    #exit 1
   fi
   echo "$type"
 }

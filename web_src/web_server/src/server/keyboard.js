@@ -30,6 +30,7 @@ import HIDDevice from '../modules/hid_devices.js';
 import { textToWebKeys } from '../modules/hid/printer.js';
 import { makeKeyboardEvent } from '../modules/hid/event.js';
 import KeyboardProcessor from '../modules/hid/keyboard_processor.js';
+import { Recorder } from '../modules/recorder.js';
 
 const logger = new Logger();
 
@@ -39,11 +40,15 @@ class Keyboard extends HIDDevice {
     if (!Keyboard._instance) {
       super();
       Keyboard._instance = this;
-      this._devicePath = '/dev/hidg0';
-      this.open();
-      this.startWriteToHid();
     }
     return Keyboard._instance;
+  }
+
+  init() {
+    this._devicePath = '/dev/hidg0';
+    this._type = 'keyboard';
+    this.open();
+    this.startWriteToHid();
   }
 
   /**
@@ -51,11 +56,16 @@ class Keyboard extends HIDDevice {
    * @param {Event} event - The keyboard event.
    */
   handleEvent(event) {
+    //console.log('keyboard event:', event);
+    const recorder = new Recorder();
+    if( recorder.isRecording() ) {
+      recorder.appendEvent( {keys: event }, 'keyboard');
+    }
     const keyboardData = this._packData(event);
     this.writeToQueue(keyboardData);
   }
 
-  pasteData(data, lang) {
+  pasteData(data, lang, delayValue) {
     const web_keys = textToWebKeys(data, lang);
     if (web_keys === null) {
       return false;
@@ -63,13 +73,18 @@ class Keyboard extends HIDDevice {
     const keyboardProcessor = new KeyboardProcessor();
   
     let delay = 0;
+    if( delayValue < 5){
+      delayValue = 5;
+    }else if (delayValue > 100) {
+      delayValue = 100;
+    }
     for (let [key, state] of web_keys) {
       setTimeout(() => {
         const event = makeKeyboardEvent(key, state);
         const data = keyboardProcessor.processEvent(event);
         this.writeToQueue(data);
       }, delay);
-      delay += 5;
+      delay += delayValue;
     }
     return true;
   }
@@ -254,15 +269,15 @@ class Keyboard extends HIDDevice {
       F10: 67,
       F11: 68,
       F12: 69,
-      PrtSc: 70,
+      PrintScreen: 70,
       ScrollLock: 71,
       Pause: 72,
       Insert: 73,
       Home: 74,
-      PgUp: 75,
+      PageUp: 75,
       Delete: 76,
       End: 77,
-      PgDn: 78,
+      PageDown: 78,
       ArrowRight: 79,
       ArrowLeft: 80,
       ArrowDown: 81,
@@ -346,6 +361,15 @@ class Keyboard extends HIDDevice {
     buffer.writeUInt8(0, 7);
 
     return buffer;
+  }
+
+  getStatus() {
+    return {
+      onlineStatus: this._onlineStatus,
+      NumLockLed: this._NumLockLed,
+      CapsLockLed: this._CapsLockLed,
+      ScrollLockLed: this._ScrollLockLed
+    };
   }
 
 }

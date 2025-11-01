@@ -23,10 +23,17 @@ import dotenv from 'dotenv';
 import crypto from 'crypto';
 dotenv.config();
 
+export const PRODUCT_VERSION = 'v2.2.0-alpha';
+export const SERVER_VERSION = 'v1.1.0';
 export const CONFIG_DIR = 'config';
+export const MSD_MOUNT_DIR =  '/media/blikvm/ventoy';
+export const MSD_CONFIG_FILE = '/mnt/msd/config/msd.json';
 export const CONFIG_PATH = process.argv[2] ? process.argv[2] : 'config/app.json';
 export const SWITCH_PATH = process.argv[3] ? process.argv[3] : 'config/switch.json';
 export const WOL_PATH = process.argv[4] ? process.argv[4] : 'config/wake_on_lan.json';
+export const ACL_PATH = process.argv[5] ? process.argv[5] : 'config/access_control_list.json';
+export const SHORTCUTS_PATH = process.argv[6] ? process.argv[6] : 'config/shortcuts.json';
 console.log(`Config path is: ${CONFIG_PATH} and switch path is: ${SWITCH_PATH}`);
 export const UTF8 = 'utf8';
 export const JWT_SECRET = crypto.randomBytes(32).toString('hex');
+export const RECORD_DIR = '/mnt/recorder'; // 30 days

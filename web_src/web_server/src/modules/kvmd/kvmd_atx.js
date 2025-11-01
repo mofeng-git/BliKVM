@@ -98,7 +98,9 @@ class ATX extends Module {
   }
 
   getATXState() {
+    const { atx } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
     return {
+      isActive: atx.isActive,
       ledPwr: this._ledPwr,
       ledHDD: this._ledHDD
     };

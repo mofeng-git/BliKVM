@@ -38,6 +38,9 @@ function apiResetConfig(req, res, next) {
       }
       returnObject.code = ApiCode.OK;
       res.json(returnObject);
+      setTimeout(() => {
+        process.exit(0)  // systemd 会自动重启
+      }, 500);
     } catch (error) {
       next(error);
     } 

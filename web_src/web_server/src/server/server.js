@@ -35,21 +35,24 @@ import { WebSocketServer, WebSocket } from 'ws';
 import Mouse from './mouse.js';
 import Keyboard from './keyboard.js';
 import { ApiCode, createApiObj } from '../common/api.js';
-import { CONFIG_PATH, UTF8, JWT_SECRET } from '../common/constants.js';
+import { CONFIG_PATH, UTF8, JWT_SECRET, ACL_PATH } from '../common/constants.js';
 import { fileExists, processPing, getSystemInfo } from '../common/tool.js';
 import path from 'path';
 import { apiGetAuthState, apiLogin } from './api/login.route.js';
+import { apiDownloadFile } from './api/download.route.js';
 import jwt from 'jsonwebtoken';
 import HID from '../modules/kvmd/kvmd_hid.js';
 import { wsGetVideoState } from './api/video.route.js';
 import startTusServer from './tusServer.js';
 import { createSshServer, activeSSHConnections } from './sshServer.js';
-import { NotificationType, Notification } from '../modules/notification.js';
+import { Notify } from '../modules/notification.js';
 import ATX from '../modules/kvmd/kvmd_atx.js';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import httpProxy from 'http-proxy';
 import { PrometheusMetrics, BasicAuthObj } from './prometheus.js';
 import { createSerialServer } from './serialServer.js';
+import os from 'os';
+import mdns from 'multicast-dns';
 
 const logger = new Logger();
 
@@ -180,6 +183,18 @@ class HttpServer {
   startService() {
     return new Promise((resolve, reject) => {
       this._state = HttpServerState.STARTING;
+
+      // start app-level mDNS responder based on config (server.mdnsEnabled)
+      if (this._mdnsEnabled) {
+        try {
+          this._startMdns();
+        } catch (e) {
+          logger.warn(`mDNS start failed: ${e.message}`);
+        }
+      } else {
+        logger.info('mDNS disabled by config');
+      }
+
       if (this._protocol === 'https') {
         this._server.listen(this._httpsServerPort, () => {
           logger.info(
@@ -219,6 +234,12 @@ class HttpServer {
   closeService() {
     return new Promise((resolve, reject) => {
       this._state = HttpServerState.STOPPING;
+
+      // stop mDNS
+      if (this._mdns) {
+        try { this._mdns.destroy(); } catch (e) { }
+        this._mdns = null;
+      }
 
       const wsClientNumber = this._wss.clients.size;
       this._wss.clients.forEach((client) => {
@@ -263,21 +284,64 @@ class HttpServer {
     };
   }
 
+  _ipBlacklistMiddleware(IP_BLACKLIST) {
+    return (req, res, next) => {
+      let clientIp = req.ip || req.connection.remoteAddress;
+      if (clientIp.startsWith('::ffff:')) {
+        clientIp = clientIp.replace('::ffff:', '');
+      }
+      if (IP_BLACKLIST.includes(clientIp)) {
+        logger.warn(`IP ${clientIp} is blacklisted and cannot access this server.`);
+        res.status(403).json({ error: 'Forbidden' });
+      } else {
+        next();
+      }
+    };
+  }
+
+  _extractIPList(config) {
+    try {
+      const mode = String(config?.mode || '').toLowerCase(); // 获取 mode 值
+      if (mode === 'allow') {
+        const items = (config?.allowList?.items) || [];
+        return items.map((entry) => entry?.ip).filter(Boolean);
+      }
+      if (mode === 'block') {
+        const items = (config?.blockList?.items) || [];
+        return items.map((entry) => entry?.ip).filter(Boolean);
+      }
+      // mode === 'none' 或未知
+      return [];
+    } catch (e) {
+      // 发生异常时返回空列表，避免服务崩溃
+      return [];
+    }
+  }
+
   /**
    * Initializes the HTTP API server.
    * @private
    */
   _init() {
     const { server, video, msd } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+    const acl_config = JSON.parse(fs.readFileSync(ACL_PATH, UTF8));
     this._protocol = server.protocol;
-    this._httpsServerPort = server.https_port;
-    this._httpServerPort = server.http_port;
+    this._httpsServerPort = server.https_port || 443;
+    this._httpServerPort = server.http_port || 80;
+    this._mdnsEnabled = server.mdnsEnabled !== undefined ? !!server.mdnsEnabled : true;
     G_AuthState = server.auth;
     const app = express();
 
-    if (server.ipWhite.enable === true) {
-      const IP_WHITELIST = server.ipWhite.list;
-      app.use(this._ipWhitelistMiddleware(IP_WHITELIST));
+    if (acl_config.mode === "allow") {
+      const IP_WHITELIST = this._extractIPList(acl_config);
+      if (IP_WHITELIST.length > 0) {
+        app.use(this._ipWhitelistMiddleware(IP_WHITELIST));
+      }else{
+        logger.error("IP whitelist is empty.");
+      }
+    }else if(acl_config.mode === "block") {
+      const IP_BLACKLIST = this._extractIPList(acl_config);
+      app.use(this._ipBlacklistMiddleware(IP_BLACKLIST));
     }
 
     app.use(
@@ -307,19 +371,21 @@ class HttpServer {
       },
     }));
 
-    const janus_server = server.protocol === 'http' ? 'http://127.0.0.1:8188' : 'https://127.0.0.1:8989';
+    const janusSocket = '/run/janus-ws.sock';
     this._proxy = httpProxy.createProxyServer({
-      target: janus_server, // Janus server address
+      target: { socketPath: janusSocket },
       ws: true,
-      changeOrigin: true,
+      changeOrigin: false,
       secure: false,
     });
 
     app.post('/api/login', apiLogin);
     app.get('/api/auth/state', apiGetAuthState);
+    app.get('/api/virtual-media/:filename', apiDownloadFile);
+
 
     const PrometheusMetricsObj = new PrometheusMetrics();
-    app.get('/api/metrics', BasicAuthObj, async (req, res) => {
+    app.get('/api/export/prometheus/metrics', BasicAuthObj, async (req, res) => {
       res.set('Content-Type', PrometheusMetricsObj._register.contentType);
       res.end(await PrometheusMetricsObj.getMetrics());
     });
@@ -337,6 +403,8 @@ class HttpServer {
         app.post(route.path, route.handler);
       } else if (route.method === 'delete') {
         app.delete(route.path, route.handler);
+      } else if (route.method === 'patch') {
+        app.patch(route.path, route.handler);
       }
     });
 
@@ -356,7 +424,10 @@ class HttpServer {
       }, app);
 
       this._httpServer = http.createServer((req, res) => {
-        const host = req.headers.host.replace(/:\d+$/, `${this._httpsServerPortps}`);
+        let host = (req.headers.host || '').replace(/:\d+$/, '');
+        if (this._httpsServerPort && this._httpsServerPort !== 443) {
+          host = `${host}:${this._httpsServerPort}`;
+        }
         res.writeHead(301, { Location: `https://${host}${req.url}` });
         res.end();
       });
@@ -473,8 +544,7 @@ class HttpServer {
    */
   _websocketServerConnectionEvent(ws, req) {
     try {
-      const notification = new Notification();
-      notification.initWebSocket(ws);
+      Notify.initWebSocket(ws);
 
       logger.info(`WebSocket Client connected, total clients: ${this._wss.clients.size}`);
 
@@ -545,18 +615,31 @@ class HttpServer {
    * @private
    */
   _httpRecorderMiddle(req, res, next) {
-    if (req.url === '/main' || req.url === '/terminal') {
+    if (req.url === '/matrix' || req.url === '/terminal') {
       next();
       return;
     }
     const requestType = req.method;
     const requestUrl = req.url;
     if (G_AuthState === true) {
-      const authHeader = req.headers.authorization;
-      const token = authHeader && authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const username = decoded.username;
-      logger.info(`http api request ${requestType} ${requestUrl} by ${username}`);
+      try {
+        const authHeader = req.headers.authorization;
+        let token = authHeader && authHeader.split(' ')[1];
+        if (!token) {
+          // Try to get token from query string (e.g., /path?token=xxx)
+          const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+          token = urlObj.searchParams.get('token') || (req.query && req.query.token) || (req.cookies && req.cookies.token);
+        }
+        if (token) {
+          const decoded = jwt.verify(token, JWT_SECRET);
+          const username = decoded.username;
+          logger.info(`http api request ${requestType} ${requestUrl} by ${username}`);
+        } else {
+          logger.info(`http api request ${requestType} ${requestUrl} (no token)`);
+        }
+      } catch (e) {
+        logger.info(`http api request ${requestType} ${requestUrl} (invalid token)`);
+      }
     } else {
       logger.info(`http api request ${requestType} ${requestUrl}`);
     }
@@ -572,7 +655,7 @@ class HttpServer {
    * @private
    */
   _httpVerityMiddle(req, res, next) {
-    if (req.url === '/main' || req.url === '/terminal') {
+    if (req.url === '/matrix' || req.url === '/terminal') {
       next();
       return;
     }
@@ -580,7 +663,15 @@ class HttpServer {
     returnObject.code = ApiCode.INVALID_CREDENTIALS;
 
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
+    let token = authHeader && authHeader.split(' ')[1];
+    if (!token) {
+      try {
+        const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+        token = urlObj.searchParams.get('token') || (req.query && req.query.token) || (req.cookies && req.cookies.token);
+      } catch (e) {
+        // ignore URL parse errors
+      }
+    }
 
     if (!token) {
       logger.error(`token is null:${req.url}`);
@@ -588,13 +679,14 @@ class HttpServer {
       res.status(401).json(returnObject);
       return;
     }
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    jwt.verify(token, JWT_SECRET, (err, payload) => {
       if (err) {
         logger.error('invalid token');
         returnObject.msg = 'invalid token';
         res.status(401).json(returnObject);
         return;
       }
+      req.auth = payload;
       next();
     });
   }
@@ -609,12 +701,64 @@ class HttpServer {
    */
   _httpErrorMiddle(err, req, res, next) {
     logger.error(`Error handling HTTP request: ${err}`);
-    const notification = new Notification();
-    notification.addMessage(NotificationType.ERROR, `Error handling HTTP request: ${err}`);
+    Notify.error(`Error handling HTTP request: ${err}`);
     const ret = createApiObj();
     ret.code = ApiCode.INTERNAL_SERVER_ERROR;
     ret.msg = err.message;
     res.status(500).json(ret);
+  }
+
+  _startMdns() {
+    // Determine and cache mDNS hostname (env > system hostname > default)
+    if (!this._mdnsName) {
+      let hn = process.env.MDNS_NAME || os.hostname() || 'blikvm';
+      // strip trailing .local and sanitize to RFC-952-ish hostname (letters, digits, hyphen)
+      hn = hn.replace(/\.local$/i, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      if (!hn) hn = 'blikvm';
+      this._mdnsName = hn;
+    }
+
+    // Advertise A record for <name>.local pointing to local IPv4s
+    const name = `${this._mdnsName}.local`;
+    const addresses = [];
+    const ifaces = os.networkInterfaces();
+    for (const key of Object.keys(ifaces)) {
+      for (const addr of ifaces[key]) {
+        if (!addr.internal && addr.family === 'IPv4') {
+          addresses.push(addr.address);
+        }
+      }
+    }
+    if (addresses.length === 0) {
+      logger.warn('mDNS: no non-internal IPv4 address found; skipping announce');
+      return;
+    }
+    this._mdns = mdns();
+
+    // Respond to queries for our name
+    this._mdns.on('query', (q) => {
+      q.questions.forEach((qq) => {
+        if (qq.name === name && (qq.type === 'A' || qq.type === 'ANY')) {
+          const answers = addresses.map((ip) => ({
+            name,
+            type: 'A',
+            ttl: 120,
+            data: ip
+          }));
+          this._mdns.respond({ answers });
+        }
+      });
+    });
+
+    // Proactively announce once on start
+    const answers = addresses.map((ip) => ({ name, type: 'A', ttl: 120, data: ip }));
+    try { this._mdns.respond({ answers }); } catch { }
+
+    logger.info(`mDNS: advertising ${name} -> ${addresses.join(', ')}`);
   }
 }
 export default HttpServer;

@@ -19,6 +19,7 @@
 #                                                                            #
 *****************************************************************************/
 import fs from 'fs';
+import { writeJsonAtomic } from '../../common/atomic-file.js';
 import Logger from '../../log/logger.js';
 import Module from '../module.js';
 import { ModuleState } from '../../common/enums.js';
@@ -53,17 +54,28 @@ class HID extends Module {
     this._enable = hid.enable;
   }
 
-  startService(mouseMode, msdEnable) {
+  // mouseMode: dual relative absolute 
+  // msdEnable: enable disable
+  startService() {
     return new Promise((resolve, reject) => {
       if (!isDeviceFile(this._hidkeyboard) && !isDeviceFile(this._hidmouse)) {
         logger.info(this._hidEnablePath);
-        executeScriptAtPath(this._hidEnablePath, [`mouse_mode=${mouseMode}`, `msd=${msdEnable}`])
-          .then(() => {
+        const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+        const args = [
+          `mouse_mode=${config.hid.mouseMode}`,
+          `msd=${config.msd.enable ? 'enable' : 'disable'}`,
+          `mic=${config.mic.isRegistered ? 'enable' : 'disable'}`,
+        ];
+        const identity = (config.hid && config.hid.identity) || {};
+        if (identity.idVendor) args.push(`idVendor=${identity.idVendor}`);
+        if (identity.idProduct) args.push(`idProduct=${identity.idProduct}`);
+        if (identity.manufacturer) args.push(`manufacturer=${identity.manufacturer}`);
+        if (identity.product) args.push(`product=${identity.product}`);
+        executeScriptAtPath(this._hidEnablePath, args)
+          .then( async () => {
             this._state = ModuleState.RUNNING;
-            const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
             if (config.hid.enable !== true) {
-              config.hid.enable = true;
-              fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), UTF8);
+              await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.hid.enable = true; });
             }
             resolve();
           })
@@ -82,12 +94,11 @@ class HID extends Module {
   closeService() {
     return new Promise((resolve, reject) => {
       executeScriptAtPath(this._hidDisablePath, [])
-        .then(() => {
+        .then( async () => {
           this._state = ModuleState.STOPPED;
           const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
           if (config.hid.enable !== false) {
-            config.hid.enable = false;
-            fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), UTF8);
+            await writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.hid.enable = false; });
           }
           resolve('hid disable success');
         })
@@ -98,22 +109,19 @@ class HID extends Module {
     });
   }
 
-  changeMode(absolute) {
-    const absoluteBool = absolute === 'true';
+  changeMode(mouseMode) {
     return new Promise((resolve, reject) => {
       const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-      if (config.hid.absoluteMode === absoluteBool) {
-        resolve(`the absolute is alreadly ${config.hid.absoluteMode}`);
-      }
       if (this._state === ModuleState.RUNNING) {
         this.closeService()
           .then(() => {
-            return this.startService(absolute);
+            return this.startService(mouseMode, config.msd.enable ? 'enable' : 'disable');
           })
           .then(() => {
-            config.hid.absoluteMode = absoluteBool;
-            config.hid.enable = true;
-            fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), UTF8);
+            writeJsonAtomic(CONFIG_PATH, (cfg) => {
+              cfg.hid.mouseMode = mouseMode;
+              cfg.hid.enable = true;
+            });
             resolve(`${this._name} mode changed successfully, need reboot your kvm`);
           })
           .catch((err) => {
@@ -121,11 +129,12 @@ class HID extends Module {
             reject(err);
           });
       } else {
-        this.startService(absolute)
+        this.startService(mouseMode, config.msd.enable ? 'enable' : 'disable')
           .then(() => {
-            config.hid.absoluteMode = absoluteBool;
-            config.hid.enable = true;
-            fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), UTF8);
+            writeJsonAtomic(CONFIG_PATH, (cfg) => {
+              cfg.hid.mouseMode = mouseMode;
+              cfg.hid.enable = true;
+            });
             resolve(`${this._name} mode changed successfully, need reboot your kvm`);
           })
           .catch((err) => {
@@ -143,8 +152,8 @@ class HID extends Module {
       enable: hid.enable,
       mouseMode: hid.mouseMode,
       mouseJiggler: hid.mouseJiggler,
-      jigglerTimeDiff: hid.jigglerTimeDiff,
-      loopBlock: hid.pass_through.block
+      jigglerInterval: hid.jigglerInterval,
+      passThrough: hid.pass_through.enabled,
     };
   }
 }

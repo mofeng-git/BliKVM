@@ -19,26 +19,27 @@
 #                                                                            #
 *****************************************************************************/
 import fs from 'fs';
+import { writeJsonAtomic } from '../../common/atomic-file.js';
 
 import { createApiObj, ApiCode } from '../../common/api.js';
 import { CONFIG_PATH, UTF8 } from '../../common/constants.js';
 
 
-function apiSetDispaly(req, res, next) {
+async function apiSetDispaly(req, res, next) {
   try {
     const returnObject = createApiObj();
 
-    const { mode, onBootTime, cycleInterval, displayTime, secondIP } = req.body;
-    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-    config.display.mode = mode;
-    config.display.onBootTime = onBootTime;
-    config.display.cycleInterval = cycleInterval;
-    config.display.displayTime = displayTime;
-    config.display.secondIP = secondIP;
-
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), UTF8);
+    const { mode, onBootTime, cycleInterval, displayTime, secondaryIP } = req.body;
+    await writeJsonAtomic(CONFIG_PATH, (config) => {
+      config.display.mode = mode;
+      config.display.onBootTime = onBootTime;
+      config.display.cycleInterval = cycleInterval;
+      config.display.displayTime = displayTime;
+      config.display.secondaryIP = secondaryIP;
+    });
     returnObject.msg = 'Display config changed';
     returnObject.code = ApiCode.OK;
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     returnObject.data =  config.display;
     res.json(returnObject);
   }catch (error) {

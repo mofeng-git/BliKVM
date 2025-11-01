@@ -339,6 +339,8 @@ EOF
    
     udevadm trigger --name-match=$DISK >/dev/null 2>&1
     partprobe >/dev/null 2>&1
+    losetup -d $DISK
+    losetup -P $DISK /mnt/msd/ventoy/ventoy.img
     sleep 3
     echo "Done"
 

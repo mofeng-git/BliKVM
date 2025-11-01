@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { writeJsonAtomic } from '../common/atomic-file.js';
 import path from 'path';
 import EvdevReader from 'evdev';  
 import Logger from '../log/logger.js';
@@ -8,6 +9,8 @@ import { CONFIG_PATH, UTF8 } from '../common/constants.js';
 
 
 const logger = new Logger();
+const inputEventListeners = []; // 用于存储所有 InputEventListener 实例
+let watcher = null; // 用于存储 fs.watch 的返回值
 
 const EventCodeToHIDCode = {
   "KEY_BACKSPACE": "Backspace",
@@ -103,7 +106,7 @@ const EventCodeToHIDCode = {
   "KEY_KP9": "Numpad9",
 
   
-  "KEY_NUMLOCK": "numlock",
+  "KEY_NUMLOCK": "NumLock",
   "KEY_KPASTERISK": "NumpadMultiply",
   "KEY_KPPLUS": "NumpadAdd",
   "KEY_KPMINUS": "NumpadSubtract",
@@ -168,6 +171,7 @@ const getFilteredEventDevices = () => {
 class InputEventListener {
 
   static blockFlag = false;
+  static wheelReverse = 1;
 
   constructor() {
       this.reader = new EvdevReader();
@@ -183,6 +187,9 @@ class InputEventListener {
       this.mouse_button = 0;
       const { hid } = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
       this.mouse_sensitivity = hid.pass_through.mouse_sensitivity;
+      if(hid.pass_through.wheelReverse === true) {
+        InputEventListener.wheelReverse = -1;
+      } 
   }
 
   // 初始化事件监听器
@@ -295,7 +302,7 @@ class InputEventListener {
       buttons: this.mouse_button,
       relativeX: relativeX,
       relativeY: relativeY, 
-      verticalWheelDelta: verticalWheelDelta,
+      verticalWheelDelta: InputEventListener.wheelReverse * verticalWheelDelta,
       horizontalWheelDelta: 0,
       isAbsoluteMode: false,
       sensitivity: this.mouse_sensitivity
@@ -317,12 +324,22 @@ class InputEventListener {
   static setBlockFlag(flag) {
     if(InputEventListener.blockFlag !== flag) {
       InputEventListener.blockFlag = flag;
-      const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
-      config.hid.pass_through.blockFlag = flag;
-      fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), UTF8);
+  const config = JSON.parse(fs.readFileSync(CONFIG_PATH, UTF8));
+  config.hid.pass_through.blockFlag = flag;
+  writeJsonAtomic(CONFIG_PATH, (cfg) => { cfg.hid.pass_through.blockFlag = flag; });
       logger.info(`InputEventListener blockFlag set to ${flag}`);
     }else{
       logger.warn(`InputEventListener blockFlag already set to ${flag}`);
+    }
+  }
+
+  static setWheelReverse(value) {
+    const reverse = value ? -1 : 1;
+    if(InputEventListener.wheelReverse !== reverse) {
+      InputEventListener.wheelReverse = reverse;
+      logger.info(`InputEventListener wheelReverse set to ${reverse}`);
+    }else{
+      logger.warn(`InputEventListener wheelReverse already set to ${reverse}`);
     }
   }
 
@@ -332,10 +349,15 @@ class InputEventListener {
 
 }
 
-const watchInputDir = () => {
+const startHIDPassthroughListening = () => {
   const inputDir = '/dev/input';
-
-  fs.watch(inputDir, (eventType, filename) => {
+  const eventDevices = getFilteredEventDevices();
+  eventDevices.forEach(device => {
+    const inputEventListener = new InputEventListener();
+    inputEventListener.open(`/dev/input/${device.event}`);
+    inputEventListeners.push(inputEventListener);
+  });
+  watcher = fs.watch(inputDir, (eventType, filename) => {
     if (eventType === 'rename' && filename.startsWith('event')) {
       const filePath = path.join(inputDir, filename);
       if (fs.existsSync(filePath)) {
@@ -345,12 +367,28 @@ const watchInputDir = () => {
         if (eventDevice) {
           const inputEventListener = new InputEventListener();
           inputEventListener.open(filePath);
+          inputEventListeners.push(inputEventListener); // 保存实例
         }
       }
     }
   });
+
+  logger.info('Input directory watching started.');
 };
 
-watchInputDir();
+const stopHIDPassthroughListening = () => {
+  // 停止所有 InputEventListener 实例
+  inputEventListeners.forEach(listener => {
+    listener.close(); // 调用 close 方法关闭监听器
+  });
+  inputEventListeners.length = 0; // 清空数组
 
-export  {InputEventListener, getFilteredEventDevices};
+  // 停止目录监听
+  if (watcher) {
+    watcher.close();
+    watcher = null;
+    logger.info('Input directory watching stopped.');
+  }
+};
+
+export  {InputEventListener, getFilteredEventDevices, startHIDPassthroughListening, stopHIDPassthroughListening};

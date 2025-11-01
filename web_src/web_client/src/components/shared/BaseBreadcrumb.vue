@@ -1,4 +1,3 @@
-
 <!--
 ****************************************************************************
 #                                                                            #
@@ -22,19 +21,19 @@
 ****************************************************************************
 -->
 <script setup lang="ts">
-import { ChevronRightIcon } from 'vue-tabler-icons';
+  import { ChevronRightIcon } from 'vue-tabler-icons';
 
-type Breadcrumb = {
-  title: string;
-  disabled: boolean;
-  href: string;
-};
+  type Breadcrumb = {
+    title: string;
+    disabled: boolean;
+    href: string;
+  };
 
-const props = defineProps({
-  title: String,
-  breadcrumbs: Array as () => Breadcrumb[],
-  icon: String
-});
+  const props = defineProps({
+    title: String,
+    breadcrumbs: Array as () => Breadcrumb[],
+    icon: String,
+  });
 </script>
 
 // ===============================|| Theme Breadcrumb ||=============================== //
@@ -42,7 +41,7 @@ const props = defineProps({
   <v-row class="page-breadcrumb mb-1 mt-1">
     <v-col cols="12" md="12">
       <v-card variant="flat" class="px-4 py-3">
-        <v-row no-gutters class="align-center">
+        <v-row dense no-gutters class="align-center">
           <v-col md="5">
             <h3 class="text-h3">{{ props.title }}</h3>
           </v-col>
@@ -69,9 +68,9 @@ const props = defineProps({
 </template>
 
 <style lang="scss">
-.page-breadcrumb {
-  .v-toolbar {
-    background: transparent;
+  .page-breadcrumb {
+    .v-toolbar {
+      background: transparent;
+    }
   }
-}
 </style>

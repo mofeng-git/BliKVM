@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "mode": "none",
+  "allowList": {
+    "items": []
+  },
+  "blockList": {
+    "items": []
+  }
+}

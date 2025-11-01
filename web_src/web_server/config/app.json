@@ -1,5 +1,6 @@
 {
-  "version": 6,
+  "version": 10,
+  "deviceVersion": "BliKVM v3 HAT",
   "log": {
     "console": {
       "enabled": true,
@@ -17,6 +18,9 @@
   "userManager": {
     "userFile": "./config/user.json"
   },
+  "switchManager": {
+    "file": "./config/switch.json"
+  },
   "server": {
     "protocol": "https",
     "https_port": 443,
@@ -29,40 +33,43 @@
     "configPath": "/usr/bin/blikvm/package.json",
     "sshUser": "blikvm",
     "sshPassword": "blikvm",
-    "auth": false,
+    "auth": true,
     "authExpiration": 12,
-    "ipWhite": {
-      "enabled": false,
-      "list": []
-    }
+    "mdnsEnabled": true
   },
   "video": {
     "port": 10004,
     "shell": "./lib/kvmd-video.sh",
     "bin": "./lib/pi/ustreamer.bin",
     "fps": 30,
-    "quality": 80,
-    "kbps": 10000,
-    "gop": 30,
+    "quality": 60,
+    "kbps": 2000,
+    "gop": 60,
     "resolution": "1920x1080",
     "recordPath": "/mnt/tmp/record",
     "recordBin": "./lib/pi/ustreamer-dump"
+  },
+  "janus": {
+    "bin": "./lib/pi/janus",
+    "configsFolder": "./lib/pi/janus_configs",
+    "pluginsFolder": "./lib/pi/janus_plugins"
   },
   "kvmd": {
     "bin": "./lib/pi/kvmd-main"
   },
   "display": {
-    "mode": "boot",
+    "mode": "interval",
     "onBootTime": 3600,
     "cycleInterval": 60,
     "displayTime": 10,
-    "secondIP": ""
+    "secondaryIP": ""
   },
   "atx": {
     "controlSockFilePath": "/var/blikvm/atx.sock",
     "stateSockFilePath": "/dev/shm/blikvm/atx",
     "power_on_delay": 500,
-    "power_off_delay": 5000
+    "power_off_delay": 5000,
+    "isActive": true
   },
   "msd": {
     "enable": true,
@@ -76,59 +83,42 @@
     "hidDisable": "./lib/hid/disable-gadget.sh",
     "keymaps": "./lib/keymaps",
     "enable": true,
-    "mouseMode": "absolute",
+    "mouseMode": "dual",
     "mouseJiggler": false,
+    "jigglerInterval": 0,
     "pass_through": {
-      "enabled": true,
+      "enabled": false,
+      "blockFlag": false,
       "mouse_sensitivity": 0.3,
-      "blockFlag": true
+      "wheelReverse": false
     },
-    "shortcuts": {
-      "Ctrl+Alt+Del": [
-        "ControlLeft",
-        "AltLeft",
-        "Delete"
-      ],
-      "Alt+Tab": [
-        "AltLeft",
-        "Tab"
-      ],
-      "Alt+F4": [
-        "AltLeft",
-        "F4"
-      ],
-      "Alt+Enter": [
-        "AltLeft",
-        "Enter"
-      ],
-      "Ctrl+W": [
-        "ControlLeft",
-        "KeyW"
-      ]
-    },
-    "jigglerInterval": 60
+    "identity": {
+      "idVendor": "0x1d6b",
+      "idProduct": "0x0106",
+      "manufacturer": "BliKVM",
+      "product": "Multifunction USB Device"
+    }
   },
   "prometheus": {
-    "enabled": false,
+    "enabled": true,
     "username": "admin",
     "password": "admin",
     "interval": 15
   },
-  "switchManager": {
-    "file": "./config/switch.json"
-  },
   "fan": {
-    "tempThreshold": 65
+    "tempThreshold": 68
   },
   "healthCheck": {
-    "RAM": 0.6,
+    "RAM": 0.8,
     "storage": 0.7,
     "latency": 80,
-    "temperature": 70
+    "temperature": 65
   },
-  "janus": {
-    "bin": "./lib/pi/janus",
-    "configsFolder": "./lib/pi/janus_configs",
-    "pluginsFolder": "./lib/pi/janus_plugins"
+  "codeOfConduct": {
+    "isActive": true,
+    "url": ""
+  },
+  "mic": {
+    "isRegistered": false
   }
 }

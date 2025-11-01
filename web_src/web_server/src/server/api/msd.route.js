@@ -19,10 +19,17 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.  #
 #                                                                            #
 *****************************************************************************/
+import fs from 'fs';
 import { ApiCode, createApiObj } from '../../common/api.js';
+import { MSD_MOUNT_DIR, MSD_CONFIG_FILE, UTF8 } from '../../common/constants.js';
 import MSD from '../../modules/kvmd/kvmd_msd.js';
 import Mouse from '../mouse.js';
 import Keyboard from '../keyboard.js';
+import { readDirectoryFiles, isMounted} from '../../common/tool.js';
+import Logger from '../../log/logger.js';
+import { getDiskSpace } from '../../common/tool.js';
+
+const logger = new Logger();
 /**
  * /api/msd/state
  * /api/msd/upload?image=test.iso
@@ -84,6 +91,18 @@ async function apiConnect(req, res, next) {
   }
 }
 
+
+async function apiMSDMount(req, res, next) {
+  try {
+    const msd = new MSD();
+    await msd.mountMSD(req, res, next);
+  } catch (err) {
+    next(err);
+  }
+}
+
+
+
 async function apiImages(req, res, next) {
   try {
     const returnObject = createApiObj();
@@ -95,6 +114,46 @@ async function apiImages(req, res, next) {
     next(err);
   }
 }
+
+async function getMntSize(req, res, next) {
+  try {
+    const returnObject = createApiObj();
+    const { used, size } = await getDiskSpace('/mnt');
+    returnObject.data = { used, size };
+    returnObject.code = ApiCode.OK;
+    res.json(returnObject);
+  } catch (err) {
+    next(err);
+  }
+
+}
+
+async function apiGetMSDFiles(req, res, next) {
+  try {
+    const returnObject = createApiObj();
+    const mounted = await isMounted(MSD_MOUNT_DIR);
+    const config = JSON.parse(fs.readFileSync(MSD_CONFIG_FILE, UTF8));
+    const configMounted = config.file_mount_flag === "true" ? true : false;
+    if( mounted !== configMounted){
+      config.file_mount_flag = mounted ? "true" : "false";
+      fs.writeFileSync(MSD_CONFIG_FILE, JSON.stringify(config, null, 2), UTF8);
+    }
+    if (!mounted) {
+      logger.warn(`path not mounted: ${path}`);
+      returnObject.code = ApiCode.OK;
+      returnObject.msg = `${MSD_MOUNT_DIR} not mounted`;
+      res.json(returnObject);
+      return;
+    }
+    const files =  await readDirectoryFiles(MSD_MOUNT_DIR);
+    returnObject.code = ApiCode.OK;
+    returnObject.data = files;
+    res.json(returnObject);
+  } catch (err) {
+    next(err);
+  }
+}
+
 
 async function apiRemoveMSD(req, res, next) {
 
@@ -148,5 +207,8 @@ export {
   apiRemoveMSD,
   apiDeleteImage,
   apiGetUploadProgress,
+  apiGetMSDFiles,
+  apiMSDMount,
+  getMntSize,
   apiGetMakeImageProgress
 };

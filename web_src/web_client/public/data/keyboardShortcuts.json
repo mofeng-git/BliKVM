@@ -1,0 +1,366 @@
+{
+  "windows": [
+    {
+      "name": "Copy",
+      "value": ["ControlLeft", "KeyC"],
+      "category": "Edit"
+    },
+    {
+      "name": "Paste",
+      "value": ["ControlLeft", "KeyV"],
+      "category": "Edit"
+    },
+    {
+      "name": "Cut",
+      "value": ["ControlLeft", "KeyX"],
+      "category": "Edit"
+    },
+    {
+      "name": "Undo",
+      "value": ["ControlLeft", "KeyZ"],
+      "category": "Edit"
+    },
+    {
+      "name": "Redo",
+      "value": ["ControlLeft", "KeyY"],
+      "category": "Edit"
+    },
+    {
+      "name": "Select All",
+      "value": ["ControlLeft", "KeyA"],
+      "category": "Edit"
+    },
+    {
+      "name": "Save",
+      "value": ["ControlLeft", "KeyS"],
+      "category": "File"
+    },
+    {
+      "name": "Open",
+      "value": ["ControlLeft", "KeyO"],
+      "category": "File"
+    },
+    {
+      "name": "Print",
+      "value": ["ControlLeft", "KeyP"],
+      "category": "File"
+    },
+    {
+      "name": "Find",
+      "value": ["ControlLeft", "KeyF"],
+      "category": "Navigation"
+    },
+    {
+      "name": "Switch App",
+      "value": ["AltLeft", "Tab"],
+      "category": "Navigation"
+    },
+    {
+      "name": "Task Manager",
+      "value": ["ControlLeft", "ShiftLeft", "Escape"],
+      "category": "System"
+    },
+    {
+      "name": "Lock Screen",
+      "value": ["MetaLeft", "KeyL"],
+      "category": "System"
+    },
+    {
+      "name": "Run",
+      "value": ["MetaLeft", "KeyR"],
+      "category": "System"
+    },
+    {
+      "name": "Desktop",
+      "value": ["MetaLeft", "KeyD"],
+      "category": "System"
+    },
+    {
+      "name": "Close Window",
+      "value": ["AltLeft", "F4"],
+      "category": "Window"
+    },
+    {
+      "name": "Minimize",
+      "value": ["MetaLeft", "ArrowDown"],
+      "category": "Window"
+    },
+    {
+      "name": "Maximize",
+      "value": ["MetaLeft", "ArrowUp"],
+      "category": "Window"
+    },
+    {
+      "name": "Snap Left",
+      "value": ["MetaLeft", "ArrowLeft"],
+      "category": "Window"
+    },
+    {
+      "name": "Snap Right",
+      "value": ["MetaLeft", "ArrowRight"],
+      "category": "Window"
+    },
+    {
+      "name": "New Tab",
+      "value": ["ControlLeft", "KeyT"],
+      "category": "Browser",
+      "warning": "May be intercepted by browser"
+    },
+    {
+      "name": "Close Tab",
+      "value": ["ControlLeft", "KeyW"],
+      "category": "Browser",
+      "warning": "May be intercepted by browser"
+    },
+    {
+      "name": "Refresh",
+      "value": ["F5"],
+      "category": "Browser"
+    },
+    {
+      "name": "Full Screen",
+      "value": ["F11"],
+      "category": "Browser",
+      "warning": "May be intercepted by browser"
+    }
+  ],
+  "macos": [
+    {
+      "name": "Copy",
+      "value": ["MetaLeft", "KeyC"],
+      "category": "Edit"
+    },
+    {
+      "name": "Paste",
+      "value": ["MetaLeft", "KeyV"],
+      "category": "Edit"
+    },
+    {
+      "name": "Cut",
+      "value": ["MetaLeft", "KeyX"],
+      "category": "Edit"
+    },
+    {
+      "name": "Undo",
+      "value": ["MetaLeft", "KeyZ"],
+      "category": "Edit"
+    },
+    {
+      "name": "Redo",
+      "value": ["MetaLeft", "ShiftLeft", "KeyZ"],
+      "category": "Edit"
+    },
+    {
+      "name": "Select All",
+      "value": ["MetaLeft", "KeyA"],
+      "category": "Edit"
+    },
+    {
+      "name": "Save",
+      "value": ["MetaLeft", "KeyS"],
+      "category": "File"
+    },
+    {
+      "name": "Open",
+      "value": ["MetaLeft", "KeyO"],
+      "category": "File"
+    },
+    {
+      "name": "Print",
+      "value": ["MetaLeft", "KeyP"],
+      "category": "File"
+    },
+    {
+      "name": "Find",
+      "value": ["MetaLeft", "KeyF"],
+      "category": "Navigation"
+    },
+    {
+      "name": "Switch App",
+      "value": ["MetaLeft", "Tab"],
+      "category": "Navigation"
+    },
+    {
+      "name": "Spotlight",
+      "value": ["MetaLeft", "Space"],
+      "category": "System"
+    },
+    {
+      "name": "Force Quit",
+      "value": ["MetaLeft", "AltLeft", "Escape"],
+      "category": "System"
+    },
+    {
+      "name": "Lock Screen",
+      "value": ["ControlLeft", "MetaLeft", "KeyQ"],
+      "category": "System"
+    },
+    {
+      "name": "Screenshot",
+      "value": ["MetaLeft", "ShiftLeft", "Digit3"],
+      "category": "System"
+    },
+    {
+      "name": "Quit App",
+      "value": ["MetaLeft", "KeyQ"],
+      "category": "Window"
+    },
+    {
+      "name": "Close Window",
+      "value": ["MetaLeft", "KeyW"],
+      "category": "Window"
+    },
+    {
+      "name": "Minimize",
+      "value": ["MetaLeft", "KeyM"],
+      "category": "Window"
+    },
+    {
+      "name": "Mission Control",
+      "value": ["ControlLeft", "ArrowUp"],
+      "category": "Window"
+    },
+    {
+      "name": "Full Screen",
+      "value": ["ControlLeft", "MetaLeft", "KeyF"],
+      "category": "Window"
+    },
+    {
+      "name": "New Tab",
+      "value": ["MetaLeft", "KeyT"],
+      "category": "Browser"
+    },
+    {
+      "name": "Close Tab",
+      "value": ["MetaLeft", "KeyW"],
+      "category": "Browser"
+    },
+    {
+      "name": "Refresh",
+      "value": ["MetaLeft", "KeyR"],
+      "category": "Browser"
+    }
+  ],
+  "linux": [
+    {
+      "name": "Copy",
+      "value": ["ControlLeft", "KeyC"],
+      "category": "Edit"
+    },
+    {
+      "name": "Paste",
+      "value": ["ControlLeft", "KeyV"],
+      "category": "Edit"
+    },
+    {
+      "name": "Cut",
+      "value": ["ControlLeft", "KeyX"],
+      "category": "Edit"
+    },
+    {
+      "name": "Undo",
+      "value": ["ControlLeft", "KeyZ"],
+      "category": "Edit"
+    },
+    {
+      "name": "Redo",
+      "value": ["ControlLeft", "ShiftLeft", "KeyZ"],
+      "category": "Edit"
+    },
+    {
+      "name": "Select All",
+      "value": ["ControlLeft", "KeyA"],
+      "category": "Edit"
+    },
+    {
+      "name": "Save",
+      "value": ["ControlLeft", "KeyS"],
+      "category": "File"
+    },
+    {
+      "name": "Open",
+      "value": ["ControlLeft", "KeyO"],
+      "category": "File"
+    },
+    {
+      "name": "Print",
+      "value": ["ControlLeft", "KeyP"],
+      "category": "File"
+    },
+    {
+      "name": "Find",
+      "value": ["ControlLeft", "KeyF"],
+      "category": "Navigation"
+    },
+    {
+      "name": "Switch App",
+      "value": ["AltLeft", "Tab"],
+      "category": "Navigation"
+    },
+    {
+      "name": "Terminal",
+      "value": ["ControlLeft", "AltLeft", "KeyT"],
+      "category": "System"
+    },
+    {
+      "name": "System Monitor",
+      "value": ["ControlLeft", "Escape"],
+      "category": "System"
+    },
+    {
+      "name": "Lock Screen",
+      "value": ["ControlLeft", "AltLeft", "KeyL"],
+      "category": "System"
+    },
+    {
+      "name": "Switch TTY",
+      "value": ["ControlLeft", "AltLeft", "F1"],
+      "category": "System"
+    },
+    {
+      "name": "Close Window",
+      "value": ["AltLeft", "F4"],
+      "category": "Window"
+    },
+    {
+      "name": "Minimize",
+      "value": ["AltLeft", "F9"],
+      "category": "Window"
+    },
+    {
+      "name": "Maximize",
+      "value": ["AltLeft", "F10"],
+      "category": "Window"
+    },
+    {
+      "name": "Activities",
+      "value": ["MetaLeft"],
+      "category": "Window"
+    },
+    {
+      "name": "Workspaces",
+      "value": ["MetaLeft", "PageDown"],
+      "category": "Window"
+    },
+    {
+      "name": "New Tab",
+      "value": ["ControlLeft", "KeyT"],
+      "category": "Browser"
+    },
+    {
+      "name": "Close Tab",
+      "value": ["ControlLeft", "KeyW"],
+      "category": "Browser"
+    },
+    {
+      "name": "Refresh",
+      "value": ["F5"],
+      "category": "Browser"
+    },
+    {
+      "name": "Full Screen",
+      "value": ["F11"],
+      "category": "Browser"
+    }
+  ]
+}
