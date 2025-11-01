@@ -126,16 +126,20 @@ class Logger {
    * @private
    */
   _init() {
-
+    // Be robust on first-boot: config/app.json may exist but be partial (no `log` block).
+    // Fallback to defaultConfig.log whenever missing.
     let log;
-    if(fs.existsSync(CONFIG_PATH) === false){
-      log = defaultConfig.log;
-    }else{
-      const configFile = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-      log = configFile.log;
+    try {
+      if (fs.existsSync(CONFIG_PATH)) {
+        const configFile = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+        log = configFile?.log;
+      }
+    } catch (_) {
+      // ignore parse errors and use defaults
     }
+    if (!log) log = defaultConfig.log;
 
-    if (!log.console.enabled && !log.file.enabled) {
+    if (!log.console?.enabled && !log.file?.enabled) {
       return;
     }
 
@@ -153,14 +157,14 @@ class Logger {
       }
     };
 
-    if (log.console.enabled) {
+    if (log.console?.enabled) {
       config.categories.console = {
         appenders: ['console'],
         level: log.console.level
       };
     }
 
-    if (log.file.enabled) {
+    if (log.file?.enabled) {
       config.appenders.file = {
         type: 'file',
         filename: log.file.fileName,
@@ -176,10 +180,10 @@ class Logger {
 
     log4js.configure(config);
 
-    if (log.console.enabled) {
+    if (log.console?.enabled) {
       this._loggers.push(log4js.getLogger('console'));
     }
-    if (log.file.enabled) {
+    if (log.file?.enabled) {
       this._loggers.push(log4js.getLogger('file'));
     }
   }

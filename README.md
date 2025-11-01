@@ -76,7 +76,7 @@ docker host 网络模式：
 docker host 模式：
 
 ```bash
-sudo docker run --name kvmd -itd --privileged=true \
+sudo docker run --name blikvm -itd --privileged=true \
     -v /lib/modules:/lib/modules:ro -v /dev:/dev \
     -v /sys/kernel/config:/sys/kernel/config \
     --net=host \
@@ -86,13 +86,25 @@ sudo docker run --name kvmd -itd --privileged=true \
 docker bridge 模式：
 
 ```bash
-sudo docker run --name kvmd -itd --privileged=true \
+sudo docker run --name blikvm -itd --privileged=true \
     -v /lib/modules:/lib/modules:ro -v /dev:/dev \
     -v /sys/kernel/config:/sys/kernel/config \
     -p 8080:8080 -p 4430:4430 \
-    silentwind0/blikvm
+silentwind0/blikvm
 ```
 
+如果网络条件不佳，可使用阿里云镜像仓库加速下载：
+
+将命令中的 `silentwind0/blikvm` 替换为 `registry.cn-hangzhou.aliyuncs.com/silentwind/blikvm`
+
+部署完成后访问 https://IP:4430。首次访问可能遇到 SSL 证书安全提醒，点击"高级"和"继续访问"即可，默认用户名密码为 admin/admn。
+
+
+#### Docker 环境变量
+
+- `HTTPPORT`：默认 `8080`，HTTP 服务端口（启用 HTTPS 时用于 HTTP→HTTPS 跳转）。
+- `HTTPSPORT`：默认 `4430`，HTTPS 服务端口。
+- `NOSSL`：默认提供 HTTPS，设为 `1` 禁用 HTTPS 仅提供 HTTP。
 
 ### 报告问题
 

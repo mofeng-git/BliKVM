@@ -47,6 +47,7 @@ REPO_ROOT=$(cd -- "$(dirname -- "$0")/.." && pwd -P)
 WEB_SRC_DIR="$REPO_ROOT/web_src"
 SERVICE_FILE="$REPO_ROOT/package/kvmd-web/kvmd-web.service"
 START_SH="$REPO_ROOT/package/kvmd-web/start.sh"
+INIT_SH="$REPO_ROOT/package/init.sh"
 PKG_JSON_SRC="$REPO_ROOT/script/package.json"
 
 [[ -f "$PKG_JSON_SRC" ]] || { echo "ERROR: Version file not found: $PKG_JSON_SRC" >&2; exit 3; }
@@ -120,6 +121,7 @@ mkdir -p "$STAGE_DIR/DEBIAN" \
 # Copy payload into staging tree (no writes to system paths)
 install -m 0644 "$PKG_JSON_SRC" "$STAGE_DIR/usr/bin/blikvm/package.json"
 install -m 0755 "$START_SH" "$STAGE_DIR/usr/bin/blikvm/start.sh"
+install -m 0755 "$INIT_SH" "$STAGE_DIR/usr/bin/blikvm/init.sh"
 
 # Web server release -> /mnt/exec/release
 if [[ -d "$REPO_ROOT/web_src/web_server/release" ]]; then

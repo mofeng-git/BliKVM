@@ -259,6 +259,20 @@ class AppConfigUpdate {
     return data;
   }
 
+  // Simple deep merge: objects are merged recursively; arrays and primitives are replaced by source
+  _deepMerge(target, source) {
+    if (typeof source !== 'object' || source === null) return target;
+    const out = Array.isArray(target) ? [...target] : { ...target };
+    for (const [key, value] of Object.entries(source)) {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        out[key] = this._deepMerge(out[key] && typeof out[key] === 'object' ? out[key] : {}, value);
+      } else {
+        out[key] = value;
+      }
+    }
+    return out;
+  }
+
   // 升级配置文件
   upgradeFile() {
     try {
@@ -273,8 +287,11 @@ class AppConfigUpdate {
 
       const localData = JSON.parse(fs.readFileSync(this._filePath, UTF8));
       if (!localData.version) {
-        logger.warn('No user config version found, use latest default config');
-        fs.writeFileSync(this._filePath, JSON.stringify(this._defaultConfig, null, 2), UTF8);
+        // Merge user-provided partial config (e.g., created by init.sh) over defaults
+        const merged = this._deepMerge(this._defaultConfig, localData);
+        merged.version = this._defaultConfig.version;
+        fs.writeFileSync(this._filePath, JSON.stringify(merged, null, 2), UTF8);
+        logger.warn('No config version found; merged partial config over defaults and set latest version');
         return;
       }
       if (localData.version === this._defaultConfig.version) {
