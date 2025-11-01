@@ -23,16 +23,16 @@
   },
   "server": {
     "protocol": "https",
-    "https_port": 443,
-    "http_port": 80,
+    "https_port": 4430,
+    "http_port": 8080,
     "ssl": {
       "key": "./lib/https/key.pem",
       "cert": "./lib/https/cert.pem"
     },
     "rootPath": "/mnt/blikvm/web_src/web_server",
     "configPath": "/usr/bin/blikvm/package.json",
-    "sshUser": "blikvm",
-    "sshPassword": "blikvm",
+    "sshUser": "root",
+    "sshPassword": "1234",
     "auth": true,
     "authExpiration": 12,
     "mdnsEnabled": true
