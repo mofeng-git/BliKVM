@@ -1,118 +1,102 @@
-<h1 align="center">BliKVM - Integrated software and hardware solution for KVM</h1>
-<p align="center">
-<a href="README_CN.md">中文说明</a>
-</p>
-<p align="center">
-  <a href="https://www.blicube.com">BliKVM</a> is an open-source KVM, it has four versions: v1 CM4,  v2 PCIe, v3 HAT, v4 Allwinner. This device helps to manage servers or workstations remotely, regardless of the health of the operating system or whether one is installed. You can fix any problem, configure the BIOS, and even reinstall the OS using the virtual CD-ROM or Flash Drive. Unlike software-based remote management, you don't need to install any software on the controlled computer for non-intrusive control.
-</p>
-
-<p align="center">
-  <a href="https://github.com/ThomasVon2021/blikvm/stargazers">
-    <img alt="GitHub Stars" src="https://img.shields.io/github/stars/ThomasVon2021/blikvm?color=ffcb2f&label=%E2%AD%90%20on%20GitHub">
-  </a>
-  <a href="https://discord.gg/9Y374gUF6C">
-    <img alt="Discord Server" src="https://img.shields.io/discord/943534043515977768?color=0&label=discord%20server&logo=discord">
-  </a>
+<div align="center">
+  <h1>BliKVM</h1>
+  <p><strong>BliKVM - 开源 KVM 软件解决方案</strong></p>
+  
+  <p><a href="README.md">简体中文</a></p>
+  
+  [![GitHub stars](https://img.shields.io/github/stars/mofeng-git/BliKVM?style=social)](https://github.com/mofeng-git/One-KVM/stargazers)
+  [![GitHub forks](https://img.shields.io/github/forks/mofeng-git/BliKVM?style=social)](https://github.com/mofeng-git/One-KVM/network/members)
+  [![GitHub issues](https://img.shields.io/github/issues/mofeng-git/BliKVM)](https://github.com/mofeng-git/One-KVM/issues)
+  [![GitHub license](https://img.shields.io/github/license/mofeng-git/BliKVM)](https://github.com/mofeng-git/One-KVM/blob/master/LICENSE)
   <a href="https://qm.qq.com/q/V0qWcbNoIi">
     <img alt="QQ Group" src="https://img.shields.io/badge/QQ%E7%BE%A4-join-12B7F5?logo=tencentqq">
   </a>
-</p>
+  
+  <p>
+    <a href="#快速开始">⚡ 快速开始</a> •
+    <a href="#功能介绍">📊 功能介绍</a>
+  </p>
+</div>
 
-![](/images/hardware-connect.png)
-## Overview
+## 📖 项目概述
 
-| __中文界面__ | __English UI__ |
+BliKVM 在于帮助用户通过得到控制设备的 HDMI 画面和鼠标键盘，去远程管理服务器、工作站或个人PC等。 无论目标设备的操作系统是否能正常运行，可以通过 BLIKVM 解决目标设备的一切问题。如：配置 BIOS 系统，通过使用远程 CD-RO 或者闪存驱动器给目标设备重新安装操作系统。和基于软件的远程管理方式不同，你无需在被控电脑安装任何软件，做到无侵入式控制。
+
+本项目为 BliKVM 社区版，区别于 BliKVM 官方推出的硬件套装。社区版在功能特性和使用方式上与官方硬件存在若干差异，旨在通过与 BliKVM 官方的合作，拓展 BliKVM 系统在非官方硬件平台上的兼容性与运行能力。
+
+如您对系统稳定性、高可用性或商业级技术支持有较高要求，建议优先考虑购买 [BliKVM官方硬件套装](https://www.blicube.com/) 以获得完整保障。
+
+### 应用场景
+
+- **家庭实验室主机管理** - 远程管理服务器和开发设备
+- **服务器远程维护** - 无需物理接触即可进行系统维护
+- **系统故障处理** - 远程解决系统启动和 BIOS 相关问题
+
+| __中文界面__ | __英文界面__ |
 |--------------------------------------------|-------------------------------------------|
-| ![chinese](/images/web/web-chinese.png) | ![English UI](/images/web/web-english.png) |
+| ![chinese](/images/web/web-chinese.png) | ![PCB - Back](/images/web/web-english.png) |
 
 
-## Features
+## 📊 功能介绍
 
-- **Video capture** (HDMI/DVI/VGA)
-- **Keyboard forwarding**
-- **Mouse forwarding**
-- **Mass Storage Drive**
-- **ATX** Control the server power using ATX functions
-- Wake-on-LAN
-- **Fullscreen mode**
-- Access via **Web UI**
-- Support **multi language** switching
-- **Health monitoring** of the Pi
-- PWM **FAN** controller
-- Support **PoE**
-- **Serial** console port
-- **I2C** display connector
-- **Real Time Clock (RTC)**  
+### 核心特性
 
-## Support
+- **视频捕获**（HDMI/DVI/VGA）
+- **键盘转发**
+- **鼠标转发**
+- **虚拟U盘（重装系统）**
+- **串口** 控制台端口
 
-- Check out [the documentation](https://wiki.blicube.com/blikvm/)!
-- Join the [Discord Community Chat](https://discord.gg/9Y374gUF6C) for news, questions and support! If you are chinese，you can use[飞书](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=ebfgce4a-deb3-4275-a337-cce905ebe2fb)。
-- Download [BLIKVM OS](https://wiki.blicube.com/blikvm/en/flashing_os/).
+### 项目限制
 
-## Purchase
-- [Purchase - BliKVM CM4 v1 Version](https://www.aliexpress.com/item/1005003262886521.html)
-- [Purchase - BliKVM HAT v3  Version](https://www.aliexpress.com/item/1005004377930400.html)
-- [Purchase - BliKVM PCIe v2 version](https://www.aliexpress.com/item/1005004572837650.html)
-- [Purchase - BliKVM Allwinner v4 Version](https://www.aliexpress.com/item/3256805673100994.html)
+BliKVM 社区版本项目目前资源有限，有以下限制。
 
-## Other Purchase Links
-- [Purchase - BliKVM ATX Power Adaptor](https://www.aliexpress.com/item/1005003761450893.html)
-- [Purchase - BliKVM USB Splitter](https://www.aliexpress.com/item/1005003793429781.html)
-- [Purchase - BliKVM HDMI to CSI Board](https://www.aliexpress.com/item/1005002861310912.html)
-- [Purchase - BliKVM KVM switch(4 port) v1.0](https://www.aliexpress.com/item/1005005149590635.html)
-- [Purchase - BliKVM KVM+ATX switch(8 port) v2.0](https://www.aliexpress.com/item/3256807838289113.html?gatewayAdapt=4itemAdapt)
-- [Purchase - BliKVM HDMI to CSI & Video passthrough Board C792](https://aliexpress.com/item/1005009325895459.html)
+- 不提供内置免费内网穿透服务，相关问题请自行解决
+- 不提供24×7小时技术支持服务
+- 不承诺系统稳定性和合规性，使用风险需自行承担
+- 尽力优化用户体验，但仍需要一定的技术基础
 
-## Videos
-- [Watch - Blicube BliKVM V4: Is This the Best Linux IP KVM Yet?](https://www.youtube.com/watch?v=sbH9-fmWBS8)
-- [Watch - Goodbye IPMI - Blicube BliKVM V4 Review](https://youtu.be/HG7g3Qrupcw?si=8yjyl7AWuaHtSx3i)
-- [Watch - CM4 version Review by `Geerling Engineering`](https://www.youtube.com/watch?v=3OPd7svT3bE) 
-- [Watch - PCIe version Review by `Geerling Engineering`](https://www.youtube.com/watch?v=cVWF3u-y-Zg) 
-- [Watch - Feature Overview for CM4 Version](https://www.youtube.com/watch?v=aehOawHklGE)
-- [Watch - Unboxing for CM4 Version](https://www.youtube.com/watch?v=d7I9l5yG5M8)
+如您对系统稳定性、高可用性或商业级技术支持有较高要求，建议优先考虑购买 [BliKVM官方硬件套装](https://www.blicube.com/) 以获得完整保障。
 
-## Hardware version
+## ⚡ 快速开始
 
-![Image title](/images/version_all.png)
+### 方式一：Docker 镜像部署（推荐）
 
-## Developer
-Front and backend separation software architecture: 
-![](/images/docs_image/arch.drawio.png)
-See more in the [dev-readme](dev-readme.md) file.
+Docker 版本支持 OTG 作为虚拟 HID，兼容 arm64 架构的 Linux 系统。
 
-## Add a new language
-  If you want to add your country's language on the web interface, you can submit the corresponding PR to this path based on the English version of the [path](https://github.com/ThomasVon2021/blikvm-web-client/tree/master/src/utils/locales). After your PR is merged, we will add your language in subsequent versions of the release.If you want to conduct testing before submitting the PR, you can refer to this [document](https://github.com/ThomasVon2021/blikvm-web-client/blob/master/readme.md) and test it on your computer.
+推荐使用 --net=host 网络模式以获得更好的 wol 功能和 webrtc 通信支持。
 
-## Reporting a Bug & Requesting a New Feature
-  If you encounter an issue while using the project or discover a bug, or you have a new feature request or improvement suggestion, please raise an issue. We welcome your suggestions as they help us continuously improve the project and cater to more user needs.
+docker host 网络模式：
 
-## Donate
-This project is developed by Open Source enthusiasts. If you find BliKVM useful or it has saved you a long trip to check on an unresponsive server, you can support us by donating a few dollars on [Patreon](https://www.patreon.com/blikvm) or [Paypal](https://www.paypal.me/blikvm) or buying our devices. With this money, we will be able to buy new hardware (Raspberry Pi boards and other components) to test and maintain various configurations of BliKVM, and generally devote significantly more time to the project. At the bottom of this page are the names of all the people who have helped this project develop with their donations. Our gratitude knows no bounds!
+    端口 8080：HTTP Web 服务
+    端口 4430：HTTPS Web 服务
+    端口 20000-40000：WebRTC 通信端口范围，用于低延迟视频传输
+    端口 9（UDP）：Wake-on-LAN（WOL）唤醒功能
 
-If you wish to use BliKVM in production, we accept orders to modify it for your needs or implement custom features you require. Contact us via [live chat](https://discord.gg/9Y374gUF6C) or email: info@blicube.com.
+docker host 模式：
 
-## Acknowledgments
+```bash
+sudo docker run --name kvmd -itd --privileged=true \
+    -v /lib/modules:/lib/modules:ro -v /dev:/dev \
+    -v /sys/kernel/config:/sys/kernel/config \
+    --net=host \
+    silentwind0/blikvm
+```
 
-BliKVM would not be possible without the excellent and generous work from many open source projects, 
-the most notable of which are listed below:  
+docker bridge 模式：
 
-- [PiKVM](https://github.com/pikvm/pikvm)
-- [TinyPilot](https://github.com/tiny-pilot/tinypilot)
+```bash
+sudo docker run --name kvmd -itd --privileged=true \
+    -v /lib/modules:/lib/modules:ro -v /dev:/dev \
+    -v /sys/kernel/config:/sys/kernel/config \
+    -p 8080:8080 -p 4430:4430 \
+    silentwind0/blikvm
+```
 
-  -----
-## License
-Copyright (C) 2018-2024 by blicube info@blicube.com
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+### 报告问题
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see https://www.gnu.org/licenses/.
+如果您发现了问题，请：
+1. 使用 [GitHub Issues](https://github.com/mofeng-git/BliKVM/issues) 报告
+2. 提供详细的错误信息和复现步骤
+3. 包含您的硬件配置和系统信息
