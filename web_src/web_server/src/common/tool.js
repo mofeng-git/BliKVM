@@ -314,9 +314,9 @@ async function getDiskSpace(targetPath) {
     const disk = await si.fsSize();
     if (!disk || !disk.length) {
       // 在某些精简 / docker 环境下，systeminformation 可能拿不到 fsSize，
-      // 这里退回使用 `df -P /` 直接读取根分区的信息。
+      // 这里退回使用 `df -P <path>` 直接读取指定路径所在分区的信息。
       try {
-        const output = execSync('df -P /', { encoding: 'utf-8' });
+        const output = execSync(`df -P ${normalizedPath}`, { encoding: 'utf-8' });
         const lines = output.trim().split('\n');
         if (lines.length >= 2) {
           const parts = lines[1].trim().split(/\s+/);
