@@ -305,27 +305,84 @@ async function isMounted(target) {
   }
 }
 
-async function getDiskSpace(path) {
+async function getDiskSpace(targetPath) {
   try {
+    // 规范化路径，避免尾部多余的 `/`
+    const normalizedPath = path.resolve(targetPath);
+
     // 获取磁盘信息
     const disk = await si.fsSize();
-    // 在磁盘信息中找到指定路径的磁盘
-    const diskOnPath = disk.find((d) => d.mount === path);
-
-    // console.log('diskOnPath', diskOnPath);
-
-    // 如果找到了指定路径的磁盘信息
-    if (diskOnPath) {
-      const resJson = {
-        used: diskOnPath.used,
-        size: diskOnPath.size // 磁盘剩余空间
-      };
-      return resJson;
-    } else {
-      // 如果未找到指定路径的磁盘信息，则返回空对象或者null，视情况而定
-      logger.error(`can't find ${path}`);
-      return {}; // 或者 return null;
+    if (!disk || !disk.length) {
+      // 在某些精简 / docker 环境下，systeminformation 可能拿不到 fsSize，
+      // 这里退回使用 `df -P /` 直接读取根分区的信息。
+      try {
+        const output = execSync('df -P /', { encoding: 'utf-8' });
+        const lines = output.trim().split('\n');
+        if (lines.length >= 2) {
+          const parts = lines[1].trim().split(/\s+/);
+          // df -P: Filesystem Size Used Avail Use% MountedOn
+          const sizeKb = parseInt(parts[1], 10);
+          const usedKb = parseInt(parts[2], 10);
+          if (!Number.isNaN(sizeKb) && !Number.isNaN(usedKb)) {
+            return {
+              used: usedKb * 1024,
+              size: sizeKb * 1024
+            };
+          }
+        }
+        logger.error('df fallback for fsSize() returned unexpected output');
+      } catch (e) {
+        logger.error(`df fallback for fsSize() failed: ${e.message}`);
+      }
+      // 实在拿不到再返回空对象
+      return {};
     }
+
+    // 1) 精确匹配挂载点（经典场景）
+    let diskOnPath = disk.find((d) => d.mount === normalizedPath);
+
+    // 2) 如果不是挂载点，按“最长前缀”匹配所在分区，例如：
+    //    - 目录：/media/blikvm/ventoy
+    //    - 挂载：/ 或 /media
+    //    选择 mount 前缀最长的一项
+    if (!diskOnPath) {
+      const candidates = disk
+        .filter((d) => {
+          if (!d.mount) return false;
+          const mountPath =
+            d.mount.length > 1 && d.mount.endsWith('/') ? d.mount.slice(0, -1) : d.mount;
+          return normalizedPath === mountPath || normalizedPath.startsWith(`${mountPath}/`);
+        })
+        .sort((a, b) => b.mount.length - a.mount.length);
+
+      if (candidates.length > 0) {
+        diskOnPath = candidates[0];
+      }
+    }
+
+    // 3) 兜底：退回根分区 `/`
+    if (!diskOnPath) {
+      diskOnPath = disk.find((d) => d.mount === '/');
+    }
+
+    if (!diskOnPath) {
+      // 4) 再兜底：选择容量最大的分区，视为“系统分区”（适配部分 docker 环境）
+      const sorted = disk
+        .filter((d) => typeof d.size === 'number' && d.size > 0)
+        .sort((a, b) => b.size - a.size);
+      if (sorted.length > 0) {
+        diskOnPath = sorted[0];
+      } else {
+        logger.error(`can't find any fsSize entry for path: ${normalizedPath}`);
+        return {};
+      }
+    }
+
+    const resJson = {
+      used: diskOnPath.used,
+      size: diskOnPath.size // 分区总容量
+    };
+    return resJson;
   } catch (err) {
     // 捕获异常并返回null
     return null;
